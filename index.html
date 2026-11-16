@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>翔買鶴厝｜台中房市風向觀測站 - 台中 8 區近半年住宅成交行情</title>
+  <meta name="description" content="想在台中買房？30秒看懂台中 8 區近半年住宅實價登錄中位單價、中位總價與成交行情。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-navy: #0f2042;
+      --navy-light: #1e3a6e;
+      --navy-dark: #091326;
+      --bg-page: #f1f5f9;
+      --card-bg: #ffffff;
+      --line-green: #06c755;
+      --line-green-hover: #05b34c;
+      --line-green-active: #049b42;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-sub: #64748b;
+      --border-color: #cbd5e1;
+      --border-light: #e2e8f0;
+      --warning-bg: #fffbeb;
+      --warning-border: #fde68a;
+      --warning-text: #92400e;
+      --gray-box: #f8fafc;
+      --bar-blue: #2563eb;
+      --bar-blue-light: #60a5fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      font-size: 16px;
+      padding: 0;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Container: Phone first, max 480px on desktop */
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(145deg, var(--primary-navy) 0%, var(--navy-light) 100%);
+      color: #ffffff;
+      padding: 24px 20px 20px 20px;
+      text-align: center;
+      border-bottom: 3px solid #3b82f6;
+    }
+
+    .brand-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #93c5fd;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    h1.site-title {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+      line-height: 1.35;
+      color: #ffffff;
+    }
+
+    p.site-subtitle {
+      font-size: 15px;
+      font-weight: 500;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    /* Main Content */
+    main {
+      padding: 18px 16px 24px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background-color: var(--bg-page);
+    }
+
+    /* District Selector Section */
+    .selector-section {
+      background: #ffffff;
+      padding: 14px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--border-light);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    .selector-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    .selector-hint {
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748b;
+    }
+
+    /* 8 Buttons in 2 Rows */
+    .district-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .district-btn {
+      appearance: none;
+      border: 1.5px solid var(--border-color);
+      background-color: #ffffff;
+      color: #1e293b;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 11px 2px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      position: relative;
+      touch-action: manipulation;
+    }
+
+    .district-btn:hover {
+      border-color: var(--navy-light);
+      background-color: #f8fafc;
+    }
+
+    .district-btn:active {
+      transform: scale(0.97);
+    }
+
+    .district-btn.active {
+      background-color: var(--primary-navy);
+      border-color: var(--primary-navy);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 32, 66, 0.25);
+    }
+
+    .district-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid var(--primary-navy);
+    }
+
+    /* Result Card */
+    .result-card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      border: 1px solid var(--border-light);
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+      padding: 18px 16px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Low Sample Warning Banner */
+    .warning-banner {
+      background-color: var(--warning-bg);
+      border: 1.5px solid var(--warning-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--warning-text);
+      font-size: 13.5px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .warning-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: #d97706;
+    }
+
+    /* Card Header */
+    .card-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 10px;
+    }
+
+    .card-district-name {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--primary-navy);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-badge {
+      font-size: 12px;
+      font-weight: 600;
+      background: #e2e8f0;
+      color: #334155;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    /* Key Metrics Hero */
+    .hero-metric-box {
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px 14px 12px 14px;
+      text-align: center;
+    }
+
+    .hero-label {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .hero-price-display {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px;
+      margin: 4px 0 8px 0;
+    }
+
+    .hero-unit-num {
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--primary-navy);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .hero-unit-text {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e3a6e;
+    }
+
+    /* Sub stats row */
+    .sub-stats-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr 0.9fr;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 10px 6px;
+    }
+
+    .sub-stat-item {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .sub-stat-item:not(:last-child) {
+      border-right: 1px solid #f1f5f9;
+    }
+
+    .sub-stat-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 2px;
+      white-space: nowrap;
+    }
+
+    .sub-stat-value {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    /* Section Subtitle */
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary-navy);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 14px;
+      background-color: #2563eb;
+      border-radius: 2px;
+    }
+
+    /* Breakdown 3-Cards Grid */
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .breakdown-box {
+      background: var(--gray-box);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 4px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 64px;
+    }
+
+    .breakdown-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 3px;
+    }
+
+    .breakdown-price {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .breakdown-price.null-price {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    /* Monthly Volume Chart */
+    .chart-container {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 10px 10px 10px;
+    }
+
+    .chart-bars-wrap {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 110px;
+      gap: 4px;
+      padding-top: 18px;
+    }
+
+    .chart-col {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .bar-count-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 3px;
+      min-height: 16px;
+    }
+
+    .bar-pill {
+      width: 100%;
+      max-width: 32px;
+      min-height: 4px;
+      border-radius: 4px 4px 1px 1px;
+      background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+      transition: height 0.3s ease;
+    }
+
+    .bar-pill.zero-pill {
+      background: #cbd5e1;
+      height: 4px !important;
+    }
+
+    .bar-month-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-top: 6px;
+      white-space: nowrap;
+    }
+
+    /* CTA Action Box */
+    .cta-wrapper {
+      margin-top: 4px;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 16px;
+      padding: 14px 12px 14px 12px;
+      text-align: center;
+    }
+
+    .cta-hint-text {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #166534;
+      margin-bottom: 10px;
+      line-height: 1.45;
+    }
+
+    .line-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--line-green);
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 15.5px;
+      font-weight: 800;
+      padding: 14px 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(6, 199, 85, 0.35);
+      transition: background-color 0.15s ease, transform 0.1s ease;
+      line-height: 1.35;
+      touch-action: manipulation;
+    }
+
+    .line-btn:hover {
+      background-color: var(--line-green-hover);
+    }
+
+    .line-btn:active {
+      background-color: var(--line-green-active);
+      transform: scale(0.98);
+    }
+
+    .line-icon-svg {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+
+    /* Data Disclosure Footer */
+    footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border-light);
+      padding: 16px;
+    }
+
+    details.disclosure-details {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    details.disclosure-details[open] {
+      background: #ffffff;
+      border-color: #94a3b8;
+    }
+
+    summary.disclosure-summary {
+      padding: 12px 14px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    summary.disclosure-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary.disclosure-summary::after {
+      content: '▼';
+      font-size: 11px;
+      color: #64748b;
+      transition: transform 0.2s ease;
+    }
+
+    details.disclosure-details[open] summary.disclosure-summary::after {
+      transform: rotate(180deg);
+    }
+
+    .disclosure-body {
+      padding: 0 14px 14px 14px;
+      font-size: 12.5px;
+      color: #475569;
+      line-height: 1.6;
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 10px;
+    }
+
+    .disclosure-body ul {
+      padding-left: 18px;
+      margin-bottom: 10px;
+    }
+
+    .disclosure-body li {
+      margin-bottom: 6px;
+    }
+
+    .author-credit {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--primary-navy);
+      text-align: right;
+    }
+
+    /* Screen Reader Only Utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Responsive adjustments for 375px */
+    @media (max-width: 380px) {
+      .district-btn {
+        font-size: 14px;
+        padding: 10px 1px;
+      }
+      .line-btn {
+        font-size: 14.5px;
+        padding: 13px 8px;
+      }
+      .hero-unit-num {
+        font-size: 34px;
+      }
+      .hero-unit-text {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Header -->
+  <header>
+    <div class="brand-badge">翔買鶴厝・實價觀察</div>
+    <h1 class="site-title">翔買鶴厝｜台中房市風向觀測站</h1>
+    <p class="site-subtitle">台中 8 區近半年住宅成交行情</p>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- District Selector (8 districts in 2 rows) -->
+    <section class="selector-section" aria-label="選擇行政區">
+      <div class="selector-label">
+        <span>請選擇想了解的區域：</span>
+        <span class="selector-hint">點選立即切換</span>
+      </div>
+      <div class="district-grid" role="tablist" id="district-buttons">
+        <!-- Buttons injected by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Result Card -->
+    <article class="result-card" id="result-card" aria-live="polite">
+      <!-- Rendered dynamically by renderDistrict() -->
+    </article>
+
+  </main>
+
+  <!-- Footer: Data Disclosure (Expandable) -->
+  <footer>
+    <details class="disclosure-details">
+      <summary class="disclosure-summary">
+        <span>📌 資料來源與計算說明</span>
+      </summary>
+      <div class="disclosure-body">
+        <ul>
+          <li>來源：內政部不動產成交案件實際資訊（實價登錄開放資料），2026-11-15 下載。</li>
+          <li>範圍：簽約日 2026/5/15～2026/10/18 的住宅買賣，已排除特殊交易，不含預售屋。</li>
+          <li>中位數代表整區一半成交比它高、一半比它低，不是個別物件的估價。</li>
+          <li>9、10 月筆數較少是因為登記有時間差，不代表成交量下滑。</li>
+          <li>車位沒有分開標價的交易無法扣掉車位，沒有列入單價計算，南屯、北屯等車位多的區，單價可能略為偏高。</li>
+        </ul>
+        <div class="author-credit">
+          署名：翔買鶴厝 曾義翔 整理
+        </div>
+      </div>
+    </details>
+  </footer>
+
+</div>
+
+<script>
+/**
+ * 翔買鶴厝｜台中 8 區近半年成交行情資料
+ * 原封不動放入，不修改或補任何數字
+ */
+const DATA = [
+  {
+    "district": "北區",
+    "transactions": 349,
+    "unit_price_samples": 248,
+    "median_unit_wan_per_ping": 24.5,
+    "median_total_wan": 675.0,
+    "by_type": {
+      "大樓華廈": 24.7,
+      "透天": 53.3,
+      "公寓": 20.5
+    },
+    "by_age": {
+      "5年內": 49.7,
+      "6～20年": 36.1,
+      "20年以上": 23.9
+    },
+    "monthly_counts": {
+      "2026-05": 56,
+      "2026-06": 86,
+      "2026-07": 107,
+      "2026-08": 63,
+      "2026-09": 31,
+      "2026-10": 6
+    },
+    "low_sample": false
+  },
+  {
+    "district": "西區",
+    "transactions": 193,
+    "unit_price_samples": 120,
+    "median_unit_wan_per_ping": 28.7,
+    "median_total_wan": 1150.0,
+    "by_type": {
+      "大樓華廈": 28.6,
+      "透天": 53.2,
+      "公寓": 23.2
+    },
+    "by_age": {
+      "5年內": null,
+      "6～20年": 41.3,
+      "20年以上": 26.4
+    },
+    "monthly_counts": {
+      "2026-05": 24,
+      "2026-06": 52,
+      "2026-07": 63,
+      "2026-08": 37,
+      "2026-09": 12,
+      "2026-10": 5
+    },
+    "low_sample": false
+  },
+  {
+    "district": "南區",
+    "transactions": 252,
+    "unit_price_samples": 147,
+    "median_unit_wan_per_ping": 26.3,
+    "median_total_wan": 934.0,
+    "by_type": {
+      "大樓華廈": 26.4,
+      "透天": 35.7,
+      "公寓": 18.3
+    },
+    "by_age": {
+      "5年內": 47.6,
+      "6～20年": 35.4,
+      "20年以上": 25.2
+    },
+    "monthly_counts": {
+      "2026-05": 37,
+      "2026-06": 78,
+      "2026-07": 59,
+      "2026-08": 50,
+      "2026-09": 25,
+      "2026-10": 3
+    },
+    "low_sample": false
+  },
+  {
+    "district": "西屯區",
+    "transactions": 636,
+    "unit_price_samples": 336,
+    "median_unit_wan_per_ping": 32.0,
+    "median_total_wan": 1336.5,
+    "by_type": {
+      "大樓華廈": 30.9,
+      "透天": 47.8,
+      "公寓": 23.2
+    },
+    "by_age": {
+      "5年內": 57.0,
+      "6～20年": 41.6,
+      "20年以上": 26.6
+    },
+    "monthly_counts": {
+      "2026-05": 109,
+      "2026-06": 202,
+      "2026-07": 145,
+      "2026-08": 127,
+      "2026-09": 44,
+      "2026-10": 9
+    },
+    "low_sample": false
+  },
+  {
+    "district": "南屯區",
+    "transactions": 334,
+    "unit_price_samples": 132,
+    "median_unit_wan_per_ping": 35.7,
+    "median_total_wan": 1505.0,
+    "by_type": {
+      "大樓華廈": 34.8,
+      "透天": 43.6,
+      "公寓": null
+    },
+    "by_age": {
+      "5年內": 57.4,
+      "6～20年": 38.0,
+      "20年以上": 29.6
+    },
+    "monthly_counts": {
+      "2026-05": 65,
+      "2026-06": 88,
+      "2026-07": 98,
+      "2026-08": 61,
+      "2026-09": 21,
+      "2026-10": 1
+    },
+    "low_sample": false
+  },
+  {
+    "district": "北屯區",
+    "transactions": 648,
+    "unit_price_samples": 255,
+    "median_unit_wan_per_ping": 36.0,
+    "median_total_wan": 1434.0,
+    "by_type": {
+      "大樓華廈": 32.8,
+      "透天": 42.6,
+      "公寓": 22.4
+    },
+    "by_age": {
+      "5年內": 50.4,
+      "6～20年": 40.3,
+      "20年以上": 27.1
+    },
+    "monthly_counts": {
+      "2026-05": 109,
+      "2026-06": 189,
+      "2026-07": 173,
+      "2026-08": 129,
+      "2026-09": 44,
+      "2026-10": 4
+    },
+    "low_sample": false
+  },
+  {
+    "district": "烏日區",
+    "transactions": 113,
+    "unit_price_samples": 30,
+    "median_unit_wan_per_ping": 31.8,
+    "median_total_wan": 1400.0,
+    "by_type": {
+      "大樓華廈": null,
+      "透天": 34.9,
+      "公寓": null
+    },
+    "by_age": {
+      "5年內": 38.4,
+      "6～20年": null,
+      "20年以上": 23.2
+    },
+    "monthly_counts": {
+      "2026-05": 21,
+      "2026-06": 31,
+      "2026-07": 27,
+      "2026-08": 25,
+      "2026-09": 9
+    },
+    "low_sample": true
+  },
+  {
+    "district": "大里區",
+    "transactions": 146,
+    "unit_price_samples": 83,
+    "median_unit_wan_per_ping": 26.2,
+    "median_total_wan": 1100.0,
+    "by_type": {
+      "大樓華廈": 24.8,
+      "透天": 33.2,
+      "公寓": null
+    },
+    "by_age": {
+      "5年內": 39.7,
+      "6～20年": 30.2,
+      "20年以上": 22.1
+    },
+    "monthly_counts": {
+      "2026-05": 34,
+      "2026-06": 32,
+      "2026-07": 25,
+      "2026-08": 35,
+      "2026-09": 19,
+      "2026-10": 1
+    },
+    "low_sample": false
+  }
+];
+
+// 預設月份清單（2026-05 至 2026-10）
+const MONTHS = [
+  { key: "2026-05", label: "5月" },
+  { key: "2026-06", label: "6月" },
+  { key: "2026-07", label: "7月" },
+  { key: "2026-08", label: "8月" },
+  { key: "2026-09", label: "9月" },
+  { key: "2026-10", label: "10月" }
+];
+
+// 格式化單價輔助函式（數值為 null 顯示「樣本不足」，不顯示 0）
+function formatUnitPrice(val) {
+  if (val === null || val === undefined) {
+    return '<span class="breakdown-price null-price">樣本不足</span>';
+  }
+  return `<span class="breakdown-price">${Number(val).toFixed(1)} <small style="font-size:12px;font-weight:600;color:#64748b;">萬/坪</small></span>`;
+}
+
+// 格式化總價
+function formatTotalWan(val) {
+  if (val === null || val === undefined) return '樣本不足';
+  // 若為整數則去小數點，否則保留一位
+  const numStr = Number.isInteger(val) ? val.toString() : Number(val).toFixed(1);
+  return `約 ${numStr} 萬`;
+}
+
+let currentDistrictName = "";
+
+// 建立區域選擇按鈕
+function initButtons() {
+  const container = document.getElementById("district-buttons");
+  container.innerHTML = "";
+
+  DATA.forEach((item, index) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "district-btn";
+    btn.id = `btn-${item.district}`;
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", "false");
+    btn.textContent = item.district;
+    btn.onclick = () => selectDistrict(item.district, true);
+    container.appendChild(btn);
+  });
+}
+
+// 切換選中區域
+function selectDistrict(districtName, updateUrl = true) {
+  const record = DATA.find(d => d.district === districtName);
+  if (!record) return;
+
+  currentDistrictName = districtName;
+
+  // 更新按鈕樣式
+  DATA.forEach(d => {
+    const btn = document.getElementById(`btn-${d.district}`);
+    if (btn) {
+      const isSelected = d.district === districtName;
+      btn.classList.toggle("active", isSelected);
+      btn.setAttribute("aria-selected", isSelected ? "true" : "false");
+    }
+  });
+
+  // 更新網址 query 參數 (?d=南屯區)
+  if (updateUrl) {
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("d", districtName);
+    window.history.replaceState({ district: districtName }, "", newUrl.toString());
+  }
+
+  // 繪製結果卡片
+  renderResultCard(record);
+}
+
+// 繪製結果卡
+function renderResultCard(record) {
+  const card = document.getElementById("result-card");
+
+  // 計算該區長條圖最大筆數，以計算柱體高度百分比
+  let maxMonthCount = 1;
+  MONTHS.forEach(m => {
+    const count = record.monthly_counts[m.key] || 0;
+    if (count > maxMonthCount) maxMonthCount = count;
+  });
+
+  // 建立長條圖 HTML
+  const chartBarsHtml = MONTHS.map(m => {
+    const count = record.monthly_counts[m.key];
+    const hasData = count !== undefined && count !== null;
+    const countVal = hasData ? count : 0;
+    const heightPercent = hasData && countVal > 0 ? Math.max(12, Math.round((countVal / maxMonthCount) * 100)) : 4;
+    const countText = hasData ? countVal : 0;
+    const isZero = countVal === 0;
+
+    return `
+      <div class="chart-col">
+        <div class="bar-count-label">${countText}</div>
+        <div class="bar-pill ${isZero ? 'zero-pill' : ''}" style="height: ${heightPercent}%;"></div>
+        <div class="bar-month-label">${m.label}</div>
+      </div>
+    `;
+  }).join("");
+
+  // 烏日區等 low_sample 提醒
+  const warningHtml = record.low_sample ? `
+    <div class="warning-banner" role="alert">
+      <svg class="warning-icon" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      <span>這區能算單價的樣本少，數字請當參考。</span>
+    </div>
+  ` : '';
+
+  card.innerHTML = `
+    ${warningHtml}
+
+    <!-- 區域標題列 -->
+    <div class="card-title-row">
+      <h2 class="card-district-name">
+        ${record.district}
+      </h2>
+      <span class="card-badge">近半年成交數據</span>
+    </div>
+
+    <!-- 核心數據 Hero：中位單價、中位總價、成交筆數、可算單價筆數 -->
+    <div class="hero-metric-box">
+      <div class="hero-label">住宅中位單價</div>
+      <div class="hero-price-display">
+        <span class="hero-unit-num">${record.median_unit_wan_per_ping.toFixed(1)}</span>
+        <span class="hero-unit-text">萬／坪</span>
+      </div>
+
+      <div class="sub-stats-grid">
+        <div class="sub-stat-item">
+          <div class="sub-stat-label">中位總價</div>
+          <div class="sub-stat-value">${formatTotalWan(record.median_total_wan)}</div>
+        </div>
+        <div class="sub-stat-item">
+          <div class="sub-stat-label">成交筆數</div>
+          <div class="sub-stat-value">${record.transactions} 筆</div>
+        </div>
+        <div class="sub-stat-item">
+          <div class="sub-stat-label">可算單價筆數</div>
+          <div class="sub-stat-value">${record.unit_price_samples} 筆</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 依建物類型 -->
+    <div>
+      <div class="section-title">依建物類型中位單價</div>
+      <div class="breakdown-grid">
+        <div class="breakdown-box">
+          <div class="breakdown-name">大樓華廈</div>
+          ${formatUnitPrice(record.by_type["大樓華廈"])}
+        </div>
+        <div class="breakdown-box">
+          <div class="breakdown-name">透天</div>
+          ${formatUnitPrice(record.by_type["透天"])}
+        </div>
+        <div class="breakdown-box">
+          <div class="breakdown-name">公寓</div>
+          ${formatUnitPrice(record.by_type["公寓"])}
+        </div>
+      </div>
+    </div>
+
+    <!-- 依屋齡 -->
+    <div>
+      <div class="section-title">依屋齡中位單價</div>
+      <div class="breakdown-grid">
+        <div class="breakdown-box">
+          <div class="breakdown-name">5 年內</div>
+          ${formatUnitPrice(record.by_age["5年內"])}
+        </div>
+        <div class="breakdown-box">
+          <div class="breakdown-name">6～20 年</div>
+          ${formatUnitPrice(record.by_age["6～20年"])}
+        </div>
+        <div class="breakdown-box">
+          <div class="breakdown-name">20 年以上</div>
+          ${formatUnitPrice(record.by_age["20年以上"])}
+        </div>
+      </div>
+    </div>
+
+    <!-- 每月成交筆數小長條圖 -->
+    <div>
+      <div class="section-title">每月成交筆數（5月～10月）</div>
+      <div class="chart-container">
+        <div class="chart-bars-wrap">
+          ${chartBarsHtml}
+        </div>
+      </div>
+    </div>
+
+    <!-- 行動按鈕（結果卡下方） -->
+    <div class="cta-wrapper" aria-label="加 LINE 諮詢">
+      <p class="cta-hint-text">加好友後傳你的預算、自住或投資，我幫你依條件看。</p>
+      <a class="line-btn" href="https://line.me/R/ti/p/@825gowqf" target="_blank" rel="noopener noreferrer">
+        <svg class="line-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.084.495.234l2.47 3.349V8.108c0-.345.282-.63.63-.63.345 0 .626.285.626.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+        </svg>
+        <span>想知道你的預算在這區能買什麼？加 LINE 跟我說</span>
+      </a>
+    </div>
+  `;
+}
+
+// 頁面初始化
+document.addEventListener("DOMContentLoaded", () => {
+  initButtons();
+
+  // 讀取網址 URL 參數 ?d=某某區
+  const params = new URLSearchParams(window.location.search);
+  const districtParam = params.get("d");
+
+  const matched = DATA.find(d => d.district === districtParam);
+  if (matched) {
+    selectDistrict(matched.district, false);
+  } else {
+    // 預設選取第一區：北區
+    selectDistrict(DATA[0].district, false);
+  }
+
+  // 監聽瀏覽器上一頁/下一頁切換
+  window.addEventListener("popstate", () => {
+    const curParams = new URLSearchParams(window.location.search);
+    const d = curParams.get("d");
+    const m = DATA.find(item => item.district === d);
+    if (m) {
+      selectDistrict(m.district, false);
+    } else {
+      selectDistrict(DATA[0].district, false);
+    }
+  });
+});
+</script>
+
+</body>
+</html>
