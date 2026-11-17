@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="翔買鶴厝套房租金投報率試算。依總價、租金與貸款條件，即時計算現金回報率、毛投報、淨投報與現金流。試算僅供參考，不構成投資建議。">
+  <title>套房租金投報率試算｜翔買鶴厝</title>
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <meta property="og:title" content="套房租金投報率試算｜翔買鶴厝">
+  <meta property="og:description" content="翔買鶴厝套房租金投報率試算。依總價、租金與貸款條件，即時計算現金回報率、毛投報、淨投報與現金流。試算僅供參考，不構成投資建議。">
+  <meta property="og:image" content="https://alex15ander.github.io/taichung-house/rental-calculator/og-image.png">
+  <meta property="og:url" content="https://alex15ander.github.io/taichung-house/rental-calculator/">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="套房租金投報率試算｜翔買鶴厝">
+  <meta name="twitter:image" content="og-image.png">
+  <style>
+    :root {
+      --bg: #F6F1E8;
+      --bg-deep: #EDE4D4;
+      --paper: #FFFCF8;
+      --ink: #141414;
+      --ink-soft: #3A3A3A;
+      --muted: #6B6560;
+      --hair: #E4D8C4;
+      --brand: #C8102E;
+      --brand-deep: #9E0C24;
+      --gold: #C9A24A;
+      --gold-soft: #E6D5A8;
+      --gold-wash: #F6EDD6;
+      --header-bg: #0A0A0A;
+      --header-text: #F7F1E3;
+      --danger: #C8102E;
+      --danger-bg: #F8E8EA;
+      --ok: #1A7A48;
+      --ok-bg: #E6F3EC;
+      --warn: #8A6A1A;
+      --warn-bg: #F6EDD6;
+      --line: #06C755;
+      --line-dark: #05A84B;
+      --shadow: 0 10px 30px rgba(10, 10, 10, 0.08);
+      --radius: 16px;
+      --font: "Noto Sans CJK TC", "Noto Sans TC", "Source Han Sans TC", "PingFang TC", "Hiragino Sans CNS", "Heiti TC", "Microsoft JhengHei", "Noto Sans", sans-serif;
+      --serif: "Noto Serif CJK TC", "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #efe4c8 0%, transparent 55%),
+        radial-gradient(900px 400px at 100% 0%, #f0e6d4 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.6;
+      font-size: 16px;
+      padding-bottom: calc(168px + env(safe-area-inset-bottom));
+    }
+    img, svg { display: block; max-width: 100%; }
+    a { color: var(--brand); }
+    a:hover { color: var(--brand-deep); }
+    button, input, select { font-family: inherit; font-size: 16px; }
+    h1, h2, h3 { line-height: 1.3; margin: 0; font-weight: 700; }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    .num { font-variant-numeric: tabular-nums; letter-spacing: 0; }
+
+    /* Header */
+    .site-header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(201, 162, 74, 0.45);
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .logo {
+      width: 52px; height: 52px; flex: none;
+      border-radius: 50%;
+      border: 1px solid var(--gold);
+      box-shadow: 0 0 0 2px rgba(201, 162, 74, 0.22);
+      background: #000;
+      object-fit: cover;
+    }
+    .brand-name {
+      font-family: var(--serif);
+      font-size: 20px;
+      letter-spacing: 0.08em;
+      color: var(--header-text);
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      margin-top: 1px;
+    }
+    .preview-badge {
+      flex: none;
+      font-size: 12px;
+      color: var(--gold-soft);
+      background: transparent;
+      border: 1px solid var(--gold);
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+
+    .hero { padding: 12px 0 18px; }
+    .hero h1 {
+      font-size: clamp(26px, 5vw, 36px);
+      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+    }
+    .hero p.lead {
+      margin: 0;
+      color: var(--ink-soft);
+      max-width: 40rem;
+      word-break: keep-all;
+    }
+
+    .example-banner {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: var(--gold-wash);
+      border: 1px solid var(--gold-soft);
+      color: #5C4312;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin: 16px 0 0;
+      font-size: 14px;
+      word-break: keep-all;
+    }
+    .example-banner strong { color: #4A350C; }
+    .banner-mark {
+      flex: none;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      margin-top: 1px;
+    }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--hair);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .card-hd {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px 0;
+    }
+    .card-hd h2 { font-size: 18px; }
+    .card-bd { padding: 8px 18px 18px; }
+    .reset-btn {
+      background: none;
+      border: 0;
+      color: var(--brand);
+      cursor: pointer;
+      padding: 4px 0;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .reset-btn:hover { color: var(--brand-deep); }
+
+    /* Form */
+    .section {
+      border-top: 1px solid var(--hair);
+      padding: 16px 0 4px;
+    }
+    .section:first-child { border-top: 0; padding-top: 8px; }
+    .section h3 {
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      color: var(--brand);
+      text-transform: none;
+      margin-bottom: 12px;
+    }
+    .fields { display: grid; gap: 12px; }
+    .fields.two { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-label {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .example-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--warn);
+      background: var(--gold-wash);
+      border: 1px solid var(--gold-soft);
+      border-radius: 999px;
+      padding: 1px 7px;
+    }
+    .example-tag.is-hidden { display: none; }
+    .control {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .control input[type="text"],
+    .control input[type="number"] {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      background: #fff;
+      border: 1px solid #d8d0c3;
+      border-radius: 12px;
+      padding: 11px 64px 11px 12px;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .control input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.28);
+    }
+    .control input:invalid:not(:focus):not(:placeholder-shown) {
+      border-color: var(--danger);
+    }
+    .control:not(:has(.unit)) input { padding-right: 12px; }
+    .unit {
+      position: absolute;
+      right: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      pointer-events: none;
+    }
+    .hint { font-size: 12px; color: var(--muted); margin: 0; }
+    .hint a { text-decoration-underline-offset: 2px; }
+    .output-mini {
+      background: var(--gold-wash);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .output-mini .num { font-weight: 700; }
+    .warn-note {
+      font-size: 12.5px;
+      color: var(--warn);
+      background: var(--warn-bg);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin: 0;
+    }
+    .warn-note[hidden], .dep[hidden] { display: none !important; }
+
+    .seg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .seg label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 6px;
+      border: 1px solid #d8d0c3;
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 8px;
+      font-size: 13px;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .seg label:has(input:checked) {
+      border-color: var(--gold);
+      background: var(--gold-wash);
+      color: var(--ink);
+      font-weight: 700;
+      box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.22);
+    }
+    .seg input { accent-color: var(--brand); }
+
+    /* Results */
+    .results-card { display: flex; flex-direction: column; }
+    .results-kicker {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 4px 18px 0;
+    }
+    .hero-metric {
+      margin: 12px 18px 2px;
+      padding: 16px 16px 14px;
+      border-radius: 16px;
+      background: var(--header-bg);
+      border: 1px solid var(--gold);
+      text-align: center;
+    }
+    .hero-metric .label {
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      color: var(--gold);
+      font-weight: 700;
+    }
+    .hero-metric .value {
+      font-size: clamp(44px, 9vw, 58px);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
+      color: var(--gold);
+      margin: 2px 0 0;
+      word-break: keep-all;
+    }
+    .hero-metric.is-neg .value { color: #FF6B7A; }
+    .hero-metric.is-pos .value { color: var(--gold); }
+    .hero-metric.is-neutral .value { color: var(--header-text); }
+    .hero-metric .sub {
+      font-size: 12px;
+      color: rgba(247, 241, 227, 0.75);
+      margin-top: 4px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 18px 8px;
+    }
+    .kpi {
+      background: #F7F3EA;
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-height: 76px;
+    }
+    .kpi .label { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+    .kpi .value {
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      word-break: break-all;
+    }
+    .kpi.is-neg .value { color: var(--danger); }
+    .kpi.is-pos .value { color: var(--ok); }
+    .kpi.is-neutral .value { color: var(--ink); }
+    .kpi.span-2 { grid-column: 1 / -1; }
+    .kpi .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .rows { padding: 6px 18px 8px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 8px 0;
+      border-top: 1px dashed var(--hair);
+      font-size: 14px;
+    }
+    .row .k { color: var(--ink-soft); }
+    .row .v { font-weight: 650; font-variant-numeric: tabular-nums; text-align: right; }
+    .row.is-neg .v { color: var(--danger); }
+    .row.is-pos .v { color: var(--ok); }
+    .group-title {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: var(--brand);
+      font-weight: 700;
+      padding: 12px 0 0;
+    }
+
+    .cta-block {
+      margin: 8px 18px 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--header-bg);
+      color: var(--header-text);
+      border: 1px solid var(--gold);
+      text-align: center;
+    }
+    .cta-block p { margin: 0 0 10px; font-size: 14px; }
+    .btn-line {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--line);
+      color: #fff;
+      font-weight: 800;
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      min-height: 48px;
+    }
+    .btn-line:hover { background: var(--line-dark); color: #fff; }
+    .btn-line svg { width: 22px; height: 22px; }
+
+    /* Sensitivity */
+    .sens { margin-top: 20px; }
+    .sens .card-bd { overflow-x: auto; }
+    .sens h3 {
+      font-size: 15px;
+      margin: 14px 0 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 460px;
+    }
+    th, td {
+      text-align: right;
+      padding: 8px 8px;
+      border-bottom: 1px solid var(--hair);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .sens-cards { display: none; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      background: var(--gold-wash);
+    }
+    tr.is-current td {
+      background: var(--gold-wash);
+      font-weight: 700;
+    }
+    td.is-neg { color: var(--danger); }
+    td.is-pos { color: var(--ok); }
+
+    /* Notes */
+    .notes { margin-top: 20px; }
+    .notes h2 { font-size: 18px; padding: 16px 18px 0; }
+    .notes .card-bd { color: var(--ink-soft); font-size: 14px; }
+    .notes ul { margin: 8px 0; padding-left: 1.2em; }
+    .notes li { margin: 6px 0; }
+    .notes h3 { font-size: 15px; color: var(--ink); margin: 14px 0 6px; }
+
+    footer.site-footer {
+      margin: 28px auto 8px;
+      width: min(1120px, calc(100% - 32px));
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.7;
+      border-top: 1px solid var(--hair);
+      padding-top: 16px;
+    }
+    footer.site-footer strong { color: var(--ink-soft); font-weight: 700; }
+
+    .mobile-dock {
+      display: none;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 20;
+      padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+      background: rgba(255, 252, 248, 0.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--gold);
+    }
+    .dock-hero {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--header-bg);
+      border: 1px solid var(--gold);
+      border-radius: 10px;
+      padding: 6px 10px 5px;
+      margin-bottom: 5px;
+    }
+    .dock-hero .dock-hero-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+    .dock-hero strong {
+      font-variant-numeric: tabular-nums;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+    .dock-hero.is-neg strong { color: #FF6B7A; }
+    .dock-hero.is-pos strong { color: var(--gold); }
+    .dock-hero.is-neutral strong { color: var(--header-text); }
+    .dock-results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px 8px;
+      font-size: 11px;
+      color: var(--ink-soft);
+      margin-bottom: 6px;
+    }
+    .dock-results #dock-cf { grid-column: 1 / -1; }
+    .dock-results div {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 4px;
+      min-width: 0;
+    }
+    .dock-results strong {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .dock-results #dock-cf.is-neg strong,
+    .dock-results #dock-payback.is-neg strong { color: var(--danger); }
+    .dock-results #dock-cf.is-pos strong,
+    .dock-results #dock-payback.is-pos strong { color: var(--ok); }
+    .btn-line.stack {
+      flex-direction: column;
+      gap: 0;
+      padding: 7px 12px;
+      line-height: 1.2;
+      min-height: 46px;
+      box-shadow: 0 6px 20px rgba(6, 199, 85, 0.28);
+    }
+    .btn-line.stack .cta-1 { font-weight: 600; font-size: 12px; }
+    .btn-line.stack .cta-2 { font-weight: 800; font-size: 14px; }
+    .sens-item {
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 0 0 8px;
+      background: #fff;
+    }
+    .sens-item.is-current { background: var(--gold-wash); border-color: var(--gold-soft); }
+    .sens-item header { font-weight: 700; margin-bottom: 6px; }
+    .sens-item dl { margin: 0; display: grid; gap: 4px; }
+    .sens-item div { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+    .sens-item dt { color: var(--muted); }
+    .sens-item dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
+    .sens-item dd.is-neg { color: var(--danger); }
+    .sens-item dd.is-pos { color: var(--ok); }
+
+    .error-banner {
+      margin: 0 18px 12px;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+    .error-banner[hidden] { display: none !important; }
+
+    @media (min-width: 880px) {
+      body { padding-bottom: 32px; }
+      .mobile-dock { display: none !important; }
+      .layout {
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: start;
+        gap: 24px;
+      }
+      .results-col { position: sticky; top: 16px; }
+      .fields.two { grid-template-columns: 1fr 1fr; }
+      .hero { padding-top: 20px; }
+    }
+    @media (max-width: 879px) {
+      .mobile-dock { display: block; }
+      .kpi .value { font-size: 20px; }
+      #kpi-cf .value, #kpi-gross .value, #kpi-net .value {
+        white-space: nowrap;
+        font-size: 18px;
+      }
+      #kpi-payback .value {
+        font-size: 16px;
+        word-break: keep-all;
+        line-height: 1.35;
+      }
+      .table-scroll { display: none; }
+      .sens-cards { display: block; }
+      .hero { padding: 4px 0 10px; }
+      .hero h1 { font-size: 24px; }
+      .hero p.lead { font-size: 14px; }
+      .example-banner { margin-top: 10px; padding: 10px 12px; font-size: 13px; }
+      .site-header { padding-top: 12px; }
+      body { padding-bottom: calc(172px + env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <div class="brand">
+        <img class="logo" src="logo.png" width="256" height="256" alt="翔買鶴厝">
+        <div>
+          <div class="brand-name">翔買鶴厝</div>
+          <div class="brand-sub">台中收租投資</div>
+        </div>
+      </div>
+      
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>套房租金投報率試算</h1>
+      <p class="lead">把總價、租金與貸款條件填進去，即可看到現金回報率，以及毛投報、淨投報與第 1 年現金流。先自己試算一遍，再請翔哥幫你看物件。</p>
+      <div class="example-banner" role="note">
+        <span class="banner-mark" aria-hidden="true">!</span>
+        <div>頁面上的預設值全部是<strong>範例數字，請改成你的物件</strong>。這些數字不是某區行情、不是保證租金，也不代表銀行會按此成數核貸。改完數字後，結果會立即重算。</div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <form id="calc-form" class="card" autocomplete="off" novalidate>
+        <div class="card-hd">
+          <h2>輸入條件</h2>
+          <button type="button" class="reset-btn" id="btn-reset">回復範例數字</button>
+        </div>
+        <div class="card-bd">
+          <section class="section">
+            <h3>一、價格與貸款</h3>
+            <div class="fields">
+              <div class="field">
+                <div class="field-label">
+                  <label for="name">物件名稱</label>
+                  <span class="example-tag" data-tag="name">範例數字</span>
+                </div>
+                <div class="control">
+                  <input id="name" name="name" type="text" maxlength="40" value="範例物件">
+                </div>
+              </div>
+              <div class="field">
+                <div class="field-label">
+                  <label for="price">總價</label>
+                  <span class="example-tag" data-tag="price">範例數字</span>
+                </div>
+                <div class="control">
+                  <input id="price" name="price" type="text" inputmode="decimal" value="14,100,000">
+                  <span class="unit">元</span>
+                </div>
+                <p class="hint">含你想納入投報分母的買方成本。是否含契稅、仲介費，請自己定義並前後一致。</p>
+              </div>
+              <div class="fields two">
+                <div class="field">
+                  <div class="field-label">
+                    <label for="equity">自備款</label>
+                    <span class="example-tag" data-tag="equity">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="equity" name="equity" type="text" inputmode="decimal" value="4,230,000">
+                    <span class="unit">元</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="ltv">貸款成數</label>
+                    <span class="example-tag" data-tag="ltv">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="ltv" name="ltv" type="text" inputmode="decimal" value="70">
+                    <span class="unit">%</span>
+                  </div>
+                </div>
+              </div>
+              <p class="hint">自備款與貸款成數會互相連動；貸款金額＝總價−自備款。此處 70% 只是範例，不是核貸承諾。</p>
+              <div class="output-mini">
+                <span>貸款金額</span>
+                <span class="num" data-out="loan">9,870,000.00 元</span>
+              </div>
+              <p class="warn-note" id="ltv-warn" hidden></p>
+              <div class="fields two">
+                <div class="field">
+                  <div class="field-label">
+                    <label for="rate">貸款年利率</label>
+                    <span class="example-tag" data-tag="rate">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="rate" name="rate" type="text" inputmode="decimal" value="2.20">
+                    <span class="unit">%</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="years">貸款年期</label>
+                    <span class="example-tag" data-tag="years">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="years" name="years" type="text" inputmode="decimal" value="30">
+                    <span class="unit">年</span>
+                  </div>
+                </div>
+              </div>
+              <p class="hint">以每月繳款、本息平均攤還計算（每年 12 期）。第 2 戶房貸自 2026 年 9 月 18 日起法定上限為七成且不得有寬限期，第 3 戶以上為三成，詳見<a href="https://www.cbc.gov.tw/tw/cp-459-192872-a2d83-1.html" target="_blank" rel="noopener noreferrer">央行公告</a>。</p>
+            </div>
+          </section>
+
+          <section class="section">
+            <h3>二、租金與持有費用</h3>
+            <div class="fields">
+              <div class="fields two">
+                <div class="field">
+                  <div class="field-label">
+                    <label for="rooms">可出租房數</label>
+                    <span class="example-tag" data-tag="rooms">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="rooms" name="rooms" type="text" inputmode="decimal" value="1">
+                    <span class="unit">間</span>
+                  </div>
+                  <p class="hint">請填合法可出租間數，不是銷售文案間數。</p>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="rentPerRoom">每間月租</label>
+                    <span class="example-tag" data-tag="rentPerRoom">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="rentPerRoom" name="rentPerRoom" type="text" inputmode="decimal" value="105,000">
+                    <span class="unit">元</span>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <div class="field-label">
+                  <label for="rentTotal">物件總月租（選填，有填則優先）</label>
+                  <span class="example-tag" data-tag="rentTotal">選填</span>
+                </div>
+                <div class="control">
+                  <input id="rentTotal" name="rentTotal" type="text" inputmode="decimal" value="" placeholder="留空則用每間月租 × 房數">
+                  <span class="unit">元</span>
+                </div>
+              </div>
+              <div class="output-mini">
+                <span>採用之合約總月租</span>
+                <span class="num" data-out="contractRent">105,000.00 元</span>
+              </div>
+              <div class="fields two">
+                <div class="field">
+                  <div class="field-label">
+                    <label for="vacancy">空置率</label>
+                    <span class="example-tag" data-tag="vacancy">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="vacancy" name="vacancy" type="text" inputmode="decimal" value="0">
+                    <span class="unit">%</span>
+                  </div>
+                  <p class="hint">以年為單位的預期空置（含退租整修）。官方分區空置率尚待補，請自己填假設。</p>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="maintenance">年修繕費</label>
+                    <span class="example-tag" data-tag="maintenance">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="maintenance" name="maintenance" type="text" inputmode="decimal" value="0">
+                    <span class="unit">元</span>
+                  </div>
+                </div>
+              </div>
+              <div class="fields two">
+                <div class="field">
+                  <div class="field-label">
+                    <label for="mgmt">月管理費</label>
+                    <span class="example-tag" data-tag="mgmt">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="mgmt" name="mgmt" type="text" inputmode="decimal" value="18,000">
+                    <span class="unit">元</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="otherExpense">年其他雜支</label>
+                    <span class="example-tag" data-tag="otherExpense">範例預設 0</span>
+                  </div>
+                  <div class="control">
+                    <input id="otherExpense" name="otherExpense" type="text" inputmode="decimal" value="0">
+                    <span class="unit">元</span>
+                  </div>
+                </div>
+              </div>
+              <p class="hint">保險、公證、雜項等。此欄為網站加列，研究庫原模板沒有這一項；預設 0 元時，結果與原模板一致。</p>
+              <div class="fields two">
+                <div class="field">
+                  <div class="field-label">
+                    <label for="houseTax">年房屋稅</label>
+                    <span class="example-tag" data-tag="houseTax">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="houseTax" name="houseTax" type="text" inputmode="decimal" value="0">
+                    <span class="unit">元</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="landTax">年地價稅</label>
+                    <span class="example-tag" data-tag="landTax">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="landTax" name="landTax" type="text" inputmode="decimal" value="0">
+                    <span class="unit">元</span>
+                  </div>
+                </div>
+              </div>
+              <p class="hint">稅額請以稅單為準。臺中非自住住家用房屋稅為 3.2% 至 4.8%；合法出租並申報租賃所得達當地一般租金標準，才可能適用 1.5% 至 2.4%。詳見<a href="https://www.tax.taichung.gov.tw/4499/4592/4626/4634/4635/6094/normalPost" target="_blank" rel="noopener noreferrer">臺中市地方稅務局房屋稅稅率</a>。地價稅一般出租多按一般用地稅率，見<a href="https://www.tax.taichung.gov.tw/4499/4592/4704/4710/6178/" target="_blank" rel="noopener noreferrer">地價稅稅率頁</a>。</p>
+            </div>
+          </section>
+
+          <section class="section">
+            <h3>三、所得稅與代管費</h3>
+            <div class="fields">
+              <div class="field">
+                <div class="field-label">所得稅計算方式</div>
+                <div class="seg" role="radiogroup" aria-label="所得稅計算方式">
+                  <label><input type="radio" name="taxMode" value="B" checked> 方式 B：簡化估計</label>
+                  <label><input type="radio" name="taxMode" value="A"> 方式 A：自行填稅額</label>
+                </div>
+                <p class="hint">方式 B 為有效年租金 ×（1−費用率）× 邊際稅率，只是簡化估計，不是結算申報書。</p>
+              </div>
+              <div class="field dep" id="dep-tax-a" hidden>
+                <div class="field-label">
+                  <label for="taxAmount">年所得稅額</label>
+                  <span class="example-tag" data-tag="taxAmount">自行填入</span>
+                </div>
+                <div class="control">
+                  <input id="taxAmount" name="taxAmount" type="text" inputmode="decimal" value="0">
+                  <span class="unit">元</span>
+                </div>
+              </div>
+              <div class="fields two dep" id="dep-tax-b">
+                <div class="field">
+                  <div class="field-label">
+                    <label for="expenseRatio">費用率</label>
+                    <span class="example-tag" data-tag="expenseRatio">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="expenseRatio" name="expenseRatio" type="text" inputmode="decimal" value="0">
+                    <span class="unit">%</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="marginalRate">邊際稅率</label>
+                    <span class="example-tag" data-tag="marginalRate">範例數字</span>
+                  </div>
+                  <div class="control">
+                    <input id="marginalRate" name="marginalRate" type="text" inputmode="decimal" value="0">
+                    <span class="unit">%</span>
+                  </div>
+                </div>
+              </div>
+              <p class="hint dep" id="hint-tax-b">43% 是 114 年度一般自行出租、未能列舉費用時的<a href="https://law-out.mof.gov.tw/LawContent.aspx?id=GL011699" target="_blank" rel="noopener noreferrer">財政部財產租賃必要損耗及費用標準</a>，不是所有房東都適用。邊際稅率請填你自己的綜合所得稅級距，不是官方單一費率。若先不估算所得稅，費用率與邊際稅率可填 0。</p>
+              <div class="field">
+                <div class="field-label">代管費方式</div>
+                <div class="seg" role="radiogroup" aria-label="代管費方式">
+                  <label><input type="radio" name="agencyMode" value="比率" checked> 有效租金的百分比</label>
+                  <label><input type="radio" name="agencyMode" value="固定"> 每年固定金額</label>
+                </div>
+              </div>
+              <div class="field dep" id="dep-agency-rate">
+                <div class="field-label">
+                  <label for="agencyRate">代管費率</label>
+                  <span class="example-tag" data-tag="agencyRate">範例數字</span>
+                </div>
+                <div class="control">
+                  <input id="agencyRate" name="agencyRate" type="text" inputmode="decimal" value="0">
+                  <span class="unit">%</span>
+                </div>
+                <p class="hint">民間代管報價屬市場觀點，須另行詢價。沒有代管費就填 0。</p>
+              </div>
+              <div class="field dep" id="dep-agency-fixed" hidden>
+                <div class="field-label">
+                  <label for="agencyFixed">年代管固定費</label>
+                  <span class="example-tag" data-tag="agencyFixed">自行填入</span>
+                </div>
+                <div class="control">
+                  <input id="agencyFixed" name="agencyFixed" type="text" inputmode="decimal" value="0">
+                  <span class="unit">元</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </form>
+
+      <div class="results-col">
+        <section class="card results-card" id="results" aria-live="polite">
+          <div class="card-hd">
+            <h2>試算結果</h2>
+          </div>
+          <p class="results-kicker" id="results-kicker">目前套用範例數字，請改成你的物件後再解讀。</p>
+          <div class="error-banner" id="error-banner" hidden></div>
+          <div class="hero-metric is-pos" id="kpi-roe">
+            <div class="label">現金回報率</div>
+            <div class="value num" data-out="roeHero">14.05%</div>
+            <div class="sub">年現金流 ÷ 自備款</div>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi" id="kpi-gross">
+              <div class="label">毛投報率</div>
+              <div class="value num" data-out="gross">8.94%</div>
+              <div class="sub">合約年租金／總價</div>
+            </div>
+            <div class="kpi" id="kpi-net">
+              <div class="label">淨投報率（不含貸款）</div>
+              <div class="value num" data-out="netYield">7.40%</div>
+              <div class="sub">已扣空置、費用與稅</div>
+            </div>
+            <div class="kpi" id="kpi-cf">
+              <div class="label">第 1 年月現金流</div>
+              <div class="value num" data-out="monthlyCf">49,523.53 元</div>
+              <div class="sub">年現金流 ÷ 12，是平均概念</div>
+            </div>
+            <div class="kpi" id="kpi-payback">
+              <div class="label">回本年限</div>
+              <div class="value" data-out="payback" style="font-size:18px">7.12 年</div>
+              <div class="sub">僅在年現金流為正時估算</div>
+            </div>
+          </div>
+          <div class="rows">
+            <div class="group-title">租金與費用</div>
+            <div class="row"><span class="k">合約年租金</span><span class="v num" data-out="grossRent">1,260,000.00 元</span></div>
+            <div class="row"><span class="k">有效年租金（扣空置）</span><span class="v num" data-out="effRent">1,260,000.00 元</span></div>
+            <div class="row"><span class="k">有效租金毛投報率</span><span class="v num" data-out="effGross">8.94%</span></div>
+            <div class="row"><span class="k">年管理費</span><span class="v num" data-out="mgmtYear">216,000.00 元</span></div>
+            <div class="row"><span class="k">年代管費</span><span class="v num" data-out="agencyYear">0.00 元</span></div>
+            <div class="row"><span class="k">年所得稅（試算用）</span><span class="v num" data-out="incomeTax">0.00 元</span></div>
+            <div class="row"><span class="k">年其他雜支</span><span class="v num" data-out="otherYear">0.00 元</span></div>
+            <div class="group-title">貸款攤還（本息平均）</div>
+            <div class="row"><span class="k">每月應還本息</span><span class="v num" data-out="pmt">37,476.47 元</span></div>
+            <div class="row"><span class="k">每年應還本息</span><span class="v num" data-out="pmtYear">449,717.68 元</span></div>
+            <div class="row"><span class="k">第 1 年利息</span><span class="v num" data-out="interestY1">214,780.45 元</span></div>
+            <div class="row"><span class="k">第 1 年還本</span><span class="v num" data-out="principalY1">234,937.23 元</span></div>
+            <div class="group-title">現金流與現金回報</div>
+            <div class="row" id="row-cf-year"><span class="k">第 1 年年現金流</span><span class="v num" data-out="yearCf">594,282.32 元</span></div>
+            <div class="row" id="row-roe"><span class="k">現金回報率（年現金流 ÷ 自備款）</span><span class="v num" data-out="roe">14.05%</span></div>
+            <div class="row"><span class="k">第 1 年稅後淨利（還本不當費用）</span><span class="v num" data-out="profitY1">829,219.55 元</span></div>
+          </div>
+          <p class="hint" style="padding:0 18px 8px">第 1 年現金流已含還本，所以可能是負的，即使毛投報看起來還可以。稅後淨利只把第 1 年利息當費用，不是報稅用帳。</p>
+          <div class="cta-block">
+            <p>想請翔哥幫你看物件試算</p>
+            <a class="btn-line" href="https://line.me/R/ti/p/@825gowqf" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.7 9.6c0-4.1-4.1-7.4-9.2-7.4S1.3 5.5 1.3 9.6c0 3.7 3.3 6.8 7.7 7.3.3.1.7.2.8.4.1.2.1.5 0 .7l-.1.6c0 .2-.2.8 1.1.5 4.2-1.8 6.9-5 6.9-8.5zM8.2 12.1H6.6c-.2 0-.4-.2-.4-.4V8.5c0-.2.2-.4.4-.4s.4.2.4.4v2.8h1.2c.2 0 .4.2.4.4s-.2.4-.4.4zm1.4-3.6c0-.2.2-.4.4-.4s.4.2.4.4v3.2c0 .2-.2.4-.4.4s-.4-.2-.4-.4V8.5zm5.8 3.2c.2 0 .4.2.4.4s-.2.4-.4.4h-1.8c-.2 0-.4-.2-.4-.4V8.5c0-.2.2-.4.4-.4s.4.2.4.4v2.8h1.4zm2.6.8c0 .2-.2.4-.4.4s-.4-.2-.4-.4v-1.2l-1.2 1.5c-.1.1-.1.1-.2.1s-.2 0-.2-.1c-.1-.1-.1-.2-.1-.3V8.5c0-.2.2-.4.4-.4s.4.2.4.4v1.2l1.2-1.5c.1-.1.1-.1.2-.1s.2 0 .2.1c.1.1.1.2.1.3v3.2z"/></svg>
+              加 LINE@ @825gowqf
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="card sens">
+      <div class="card-hd"><h2>敏感度試算</h2></div>
+      <div class="card-bd">
+        <p class="hint">只改空置率或利率，其他條件維持你目前填的數字。用來看結果對假設有多敏感，不是預測。</p>
+        <h3>空置率怎麼影響結果</h3>
+        <div class="table-scroll">
+        <table id="table-vacancy">
+          <thead>
+            <tr><th>空置率</th><th>有效年租金</th><th>淨投報率</th><th>第 1 年年現金流</th><th>回本年限</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        </div>
+        <div id="cards-vacancy" class="sens-cards"></div>
+        <h3>利率怎麼影響結果</h3>
+        <div class="table-scroll">
+        <table id="table-rate">
+          <thead>
+            <tr><th>年利率</th><th>每月本息</th><th>第 1 年年現金流</th><th>現金回報率</th><th>回本年限</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        </div>
+        <div id="cards-rate" class="sens-cards"></div>
+      </div>
+    </section>
+
+    <section class="card notes">
+      <h2>試算假設與稅制說明</h2>
+      <div class="card-bd">
+        <h3>模型假設</h3>
+        <ul>
+          <li>假設租金、空置、稅與修繕在貸款期間大致穩定，並以第 1 年本息攤還代表當下現金流。實際會遇到退租、利率重訂或稅籍核定與假設不同，模型不會自動反映。</li>
+          <li>貸款按本息平均攤還、每月繳款。現金流為負時，回本年限沒有意義，會顯示「無法以第 1 年現金流回本」。</li>
+          <li>毛投報未扣空置、費用、稅與貸款，最容易高估。淨投報率是對總價、尚未槓桿的淨租金報酬。現金回報率則是第 1 年現金流除以自備款（年現金流 ÷ 自備款）。</li>
+        </ul>
+        <h3>稅與融資（請以主管機關規定為準）</h3>
+        <ul>
+          <li>房屋稅要先確認使用情形，並在期限前完成申報，才可能適用出租優惠稅率；「有出租」不會自動降稅。臺中市稅率表見<a href="https://www.tax.taichung.gov.tw/4499/4592/4626/4634/4635/6094/normalPost" target="_blank" rel="noopener noreferrer">地方稅務局房屋稅稅率</a>。</li>
+          <li>一般自行出租、未能列舉費用時，114 年度財政部費用標準為 43%。原文：<a href="https://law-out.mof.gov.tw/LawContent.aspx?id=GL011699" target="_blank" rel="noopener noreferrer">台財稅字第 11404657630 號令</a>。委託合法代管或包租且租期一年以上，可能適用<a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?flno=17&amp;pcode=D0060125" target="_blank" rel="noopener noreferrer">租賃住宅市場發展及管理條例第 17 條</a>的減徵，不要與 43% 混用。</li>
+          <li>公益出租或加入社會住宅包租代管，另有每屋每月租金收入 15,000 元免納綜合所得稅等規定。社宅包租代管須以一門牌為一戶出租、不得分租，隔套原則上進不了計畫。見<a href="https://thd.taichung.gov.tw/981499/981508/981529/3891515" target="_blank" rel="noopener noreferrer">臺中市社會住宅包租代管第 5 期</a>與<a href="https://www.moi.gov.tw/News_Content.aspx?n=4&amp;s=338118" target="_blank" rel="noopener noreferrer">內政部說明</a>。</li>
+          <li>央行自 2026 年 9 月 18 日起，已有一戶房貸者（第 2 戶）貸款額度最高七成且不得有寬限期；第 3 戶以上最高三成。這是法定上限，不是核貸承諾。原文：<a href="https://www.cbc.gov.tw/tw/cp-459-192872-a2d83-1.html" target="_blank" rel="noopener noreferrer">央行電子公布欄</a>。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>免責聲明：</strong>本頁試算僅供參考，不構成投資建議，亦非對任何物件租金、核貸、稅額或報酬的承諾。實際稅費以主管機關核定為準；貸款成數與利率以銀行核准為準。公式假設條件維持不變，未反映退租、罰單、利率重訂、房屋稅使用情形被核定為非自住、隔間被查報等情況。使用前請自行核對輸入與官方規定。</p>
+    <p>翔買鶴厝｜套房租金投報率試算</p>
+  </footer>
+
+  <div class="mobile-dock">
+    <div class="dock-hero is-pos" id="dock-roe">
+      <span class="dock-hero-label">現金回報率</span>
+      <strong class="num" data-out="roeHero">14.05%</strong>
+    </div>
+    <div class="dock-results" id="dock-results">
+      <div><span>毛投報</span><strong class="num" data-out="gross">8.94%</strong></div>
+      <div><span>淨投報</span><strong class="num" data-out="netYield">7.40%</strong></div>
+      <div id="dock-cf"><span>月現金流</span><strong class="num" data-out="monthlyCf">49,523.53 元</strong></div>
+    </div>
+    <a class="btn-line stack" href="https://line.me/R/ti/p/@825gowqf" target="_blank" rel="noopener noreferrer">
+      <span class="cta-1">想請翔哥幫你看物件試算</span>
+      <span class="cta-2">加 LINE@ @825gowqf</span>
+    </a>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var DEFAULTS = {
+      name: "範例物件",
+      price: 14100000,
+      equity: 4230000,
+      ltv: 70,
+      rate: 2.2,
+      years: 30,
+      rooms: 1,
+      rentPerRoom: 105000,
+      rentTotal: null,
+      vacancy: 0,
+      maintenance: 0,
+      mgmt: 18000,
+      otherExpense: 0,
+      houseTax: 0,
+      landTax: 0,
+      taxMode: "B",
+      taxAmount: 0,
+      expenseRatio: 0,
+      marginalRate: 0,
+      agencyMode: "比率",
+      agencyRate: 0,
+      agencyFixed: 0,
+      periodsPerYear: 12
+    };
+
+    var moneyIds = ["price", "equity", "rentPerRoom", "rentTotal", "maintenance", "mgmt", "otherExpense", "houseTax", "landTax", "taxAmount", "agencyFixed"];
+    var pctIds = ["ltv", "rate", "vacancy", "expenseRatio", "marginalRate", "agencyRate"];
+    var lastEquitySource = "equity";
+    var syncing = false;
+
+    function parseNum(raw) {
+      if (raw === null || raw === undefined) return null;
+      var s = String(raw).trim();
+      if (s === "") return null;
+      s = s.replace(/,/g, "").replace(/％/g, "").replace(/%/g, "");
+      s = s.replace(/[^\d.+-]/g, "");
+      if (s === "" || s === "+" || s === "-" || s === ".") return null;
+      var n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmtMoney(n) {
+      if (n === null || n === undefined || !Number.isFinite(n)) return "—";
+      var abs = Math.abs(n);
+      var s = abs.toLocaleString("zh-TW", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return (n < 0 ? "−" : "") + s + " 元";
+    }
+
+    function fmtPct(x) {
+      if (x === null || x === undefined || !Number.isFinite(x)) return "—";
+      var p = Math.round(x * 10000) / 100;
+      var sign = p < 0 ? "−" : "";
+      return sign + Math.abs(p).toFixed(2) + "%";
+    }
+
+    function fmtIntMoney(n) {
+      if (n === null || n === undefined || !Number.isFinite(n)) return "";
+      var abs = Math.abs(Math.round(n));
+      return (n < 0 ? "-" : "") + abs.toLocaleString("en-US");
+    }
+
+    function fmtDec(n, digits) {
+      if (n === null || n === undefined || !Number.isFinite(n)) return "";
+      var t = n.toFixed(digits);
+      if (digits > 0) t = t.replace(/\.?0+$/, "");
+      return t;
+    }
+
+    function pmt(r, N, L) {
+      if (!Number.isFinite(L) || L === 0) return 0;
+      if (!Number.isFinite(N) || N <= 0) return NaN;
+      if (!Number.isFinite(r) || r === 0) return L / N;
+      var g = Math.pow(1 + r, N);
+      return L * (r * g) / (g - 1);
+    }
+
+    function year1Interest(r, m, L, payment, N) {
+      if (!Number.isFinite(L) || L === 0) return 0;
+      if (!Number.isFinite(r) || r === 0) return 0;
+      var bal = L;
+      var interest = 0;
+      var periods = Math.min(m, N);
+      for (var k = 0; k < periods; k++) {
+        var int = bal * r;
+        interest += int;
+        bal -= (payment - int);
+      }
+      return interest;
+    }
+
+    function calculate(input) {
+      var errors = [];
+      var price = input.price;
+      var equity = input.equity;
+      var ratePct = input.rate;
+      var years = input.years;
+      var m = input.periodsPerYear || 12;
+      var rooms = input.rooms;
+      var rentPerRoom = input.rentPerRoom;
+      var rentTotal = input.rentTotal;
+      var vacancyPct = input.vacancy;
+      var maintenance = input.maintenance || 0;
+      var mgmt = input.mgmt || 0;
+      var otherExpense = input.otherExpense || 0;
+      var houseTax = input.houseTax || 0;
+      var landTax = input.landTax || 0;
+
+      if (price === null) errors.push("請填總價。");
+      else if (price <= 0) errors.push("總價須大於 0。");
+      if (equity === null) errors.push("請填自備款。");
+      else if (equity < 0) errors.push("自備款不能是負數。");
+      if (price !== null && equity !== null && equity > price) errors.push("自備款不能超過總價。");
+      if (ratePct === null) errors.push("請填貸款年利率。");
+      else if (ratePct < 0) errors.push("貸款年利率不能是負數。");
+      if (years === null) errors.push("請填貸款年期。");
+      else if (years <= 0) errors.push("貸款年期須大於 0。");
+      if (vacancyPct === null) errors.push("請填空置率。");
+      else if (vacancyPct < 0 || vacancyPct > 100) errors.push("空置率須介於 0% 與 100% 之間。");
+      if (rooms !== null && rooms < 0) errors.push("房數不能是負數。");
+      if (input.expenseRatio !== null && (input.expenseRatio < 0 || input.expenseRatio > 100)) errors.push("費用率須介於 0% 與 100% 之間。");
+      if (input.marginalRate !== null && input.marginalRate < 0) errors.push("邊際稅率不能是負數。");
+      if (input.agencyRate !== null && input.agencyRate < 0) errors.push("代管費率不能是負數。");
+
+      var loan = (price !== null && equity !== null) ? price - equity : NaN;
+      if (Number.isFinite(loan) && loan < 0) loan = NaN;
+
+      var contractRent;
+      if (rentTotal !== null && rentTotal !== 0) contractRent = rentTotal;
+      else if (rentPerRoom !== null && rooms !== null) contractRent = rentPerRoom * rooms;
+      else contractRent = NaN;
+
+      if (!Number.isFinite(contractRent)) errors.push("請填每間月租與房數，或直接填物件總月租。");
+      else if (contractRent < 0) errors.push("租金不能是負數。");
+
+      if (errors.length) {
+        return { ok: false, errors: errors, loan: Number.isFinite(loan) ? loan : null, contractRent: Number.isFinite(contractRent) ? contractRent : null };
+      }
+
+      var i = ratePct / 100;
+      var N = years * m;
+      var r = i / m;
+      var payment = pmt(r, N, loan);
+      var pmtYear = payment * m;
+      var interestY1 = year1Interest(r, m, loan, payment, N);
+      var principalY1 = pmtYear - interestY1;
+
+      var grossRent = contractRent * 12;
+      var effRent = grossRent * (1 - vacancyPct / 100);
+      var mgmtYear = mgmt * 12;
+      var agencyYear = 0;
+      if (input.agencyMode === "固定") agencyYear = input.agencyFixed || 0;
+      else agencyYear = effRent * ((input.agencyRate || 0) / 100);
+
+      var incomeTax = 0;
+      if (input.taxMode === "A") incomeTax = input.taxAmount || 0;
+      else incomeTax = effRent * (1 - (input.expenseRatio || 0) / 100) * ((input.marginalRate || 0) / 100);
+
+      var noi = effRent - maintenance - mgmtYear - agencyYear - houseTax - landTax - incomeTax - otherExpense;
+      var gross = grossRent / price;
+      var effGross = effRent / price;
+      var netYield = noi / price;
+      var yearCf = noi - pmtYear;
+      var monthlyCf = yearCf / 12;
+      var roe = equity === 0 ? null : yearCf / equity;
+      var payback;
+      if (equity === 0) payback = null;
+      else if (yearCf <= 0) payback = Infinity;
+      else payback = equity / yearCf;
+      var profitY1 = noi - interestY1;
+      var ltv = price === 0 ? null : loan / price;
+
+      return {
+        ok: true,
+        errors: [],
+        price: price,
+        equity: equity,
+        loan: loan,
+        ltv: ltv,
+        contractRent: contractRent,
+        grossRent: grossRent,
+        effRent: effRent,
+        mgmtYear: mgmtYear,
+        agencyYear: agencyYear,
+        incomeTax: incomeTax,
+        otherYear: otherExpense,
+        pmt: payment,
+        pmtYear: pmtYear,
+        interestY1: interestY1,
+        principalY1: principalY1,
+        gross: gross,
+        effGross: effGross,
+        netYield: netYield,
+        yearCf: yearCf,
+        monthlyCf: monthlyCf,
+        roe: roe,
+        payback: payback,
+        profitY1: profitY1
+      };
+    }
+
+    function paybackText(p) {
+      if (p === null) return "不適用（自備款為 0）";
+      if (p === Infinity) return "無法以第 1 年現金流回本";
+      if (!Number.isFinite(p)) return "—";
+      return (Math.round(p * 100) / 100).toFixed(2) + " 年";
+    }
+
+    function paybackShort(p) {
+      if (p === null) return "不適用";
+      if (p === Infinity) return "無法回本";
+      if (!Number.isFinite(p)) return "—";
+      return (Math.round(p * 100) / 100).toFixed(2) + " 年";
+    }
+
+    function cfClass(n) {
+      if (!Number.isFinite(n)) return "";
+      if (n < 0) return "is-neg";
+      if (n > 0) return "is-pos";
+      return "";
+    }
+
+    function setOut(name, text, rowSign) {
+      var nodes = document.querySelectorAll('[data-out="' + name + '"]');
+      for (var i = 0; i < nodes.length; i++) nodes[i].textContent = text;
+      if (rowSign) {
+        var el = rowSign;
+        el.classList.remove("is-neg", "is-pos", "is-neutral");
+        if (arguments[3] < 0) el.classList.add("is-neg");
+        else if (arguments[3] > 0) el.classList.add("is-pos");
+        else el.classList.add("is-neutral");
+      }
+    }
+
+    function toneKpi(id, value, opts) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove("is-neg", "is-pos", "is-neutral");
+      if (opts && opts.special) {
+        el.classList.add(opts.special);
+        return;
+      }
+      if (!Number.isFinite(value)) {
+        el.classList.add("is-neutral");
+      } else if (value < 0) el.classList.add("is-neg");
+      else if (value > 0) el.classList.add("is-pos");
+      else el.classList.add("is-neutral");
+    }
+
+    function toneHero(id, value) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove("is-neg", "is-pos", "is-neutral");
+      if (value === null || !Number.isFinite(value)) el.classList.add("is-neutral");
+      else if (value < 0) el.classList.add("is-neg");
+      else if (value > 0) el.classList.add("is-pos");
+      else el.classList.add("is-neutral");
+    }
+
+    function readInputs() {
+      return {
+        name: document.getElementById("name").value.trim(),
+        price: parseNum(document.getElementById("price").value),
+        equity: parseNum(document.getElementById("equity").value),
+        ltv: parseNum(document.getElementById("ltv").value),
+        rate: parseNum(document.getElementById("rate").value),
+        years: parseNum(document.getElementById("years").value),
+        rooms: parseNum(document.getElementById("rooms").value),
+        rentPerRoom: parseNum(document.getElementById("rentPerRoom").value),
+        rentTotal: parseNum(document.getElementById("rentTotal").value),
+        vacancy: parseNum(document.getElementById("vacancy").value),
+        maintenance: parseNum(document.getElementById("maintenance").value),
+        mgmt: parseNum(document.getElementById("mgmt").value),
+        otherExpense: parseNum(document.getElementById("otherExpense").value) || 0,
+        houseTax: parseNum(document.getElementById("houseTax").value),
+        landTax: parseNum(document.getElementById("landTax").value),
+        taxMode: document.querySelector('input[name="taxMode"]:checked').value,
+        taxAmount: parseNum(document.getElementById("taxAmount").value) || 0,
+        expenseRatio: parseNum(document.getElementById("expenseRatio").value),
+        marginalRate: parseNum(document.getElementById("marginalRate").value),
+        agencyMode: document.querySelector('input[name="agencyMode"]:checked').value,
+        agencyRate: parseNum(document.getElementById("agencyRate").value),
+        agencyFixed: parseNum(document.getElementById("agencyFixed").value) || 0,
+        periodsPerYear: 12
+      };
+    }
+
+    function isModified(input) {
+      function same(a, b) {
+        if (a === null || a === undefined) a = null;
+        if (b === null || b === undefined) b = null;
+        if (a === null && b === null) return true;
+        if (typeof a === "number" && typeof b === "number") return Math.abs(a - b) < 1e-9;
+        return a === b;
+      }
+      var keys = ["name", "price", "equity", "rate", "years", "rooms", "rentPerRoom", "rentTotal", "vacancy", "maintenance", "mgmt", "otherExpense", "houseTax", "landTax", "taxMode", "taxAmount", "expenseRatio", "marginalRate", "agencyMode", "agencyRate", "agencyFixed"];
+      for (var i = 0; i < keys.length; i++) {
+        if (!same(input[keys[i]], DEFAULTS[keys[i]])) return true;
+      }
+      return false;
+    }
+
+    function updateTags(input) {
+      var map = {
+        name: input.name !== DEFAULTS.name,
+        price: input.price !== DEFAULTS.price,
+        equity: input.equity !== DEFAULTS.equity,
+        ltv: input.ltv !== DEFAULTS.ltv,
+        rate: input.rate !== DEFAULTS.rate,
+        years: input.years !== DEFAULTS.years,
+        rooms: input.rooms !== DEFAULTS.rooms,
+        rentPerRoom: input.rentPerRoom !== DEFAULTS.rentPerRoom,
+        rentTotal: input.rentTotal !== null && input.rentTotal !== 0,
+        vacancy: input.vacancy !== DEFAULTS.vacancy,
+        maintenance: input.maintenance !== DEFAULTS.maintenance,
+        mgmt: input.mgmt !== DEFAULTS.mgmt,
+        otherExpense: input.otherExpense !== 0,
+        houseTax: input.houseTax !== DEFAULTS.houseTax,
+        landTax: input.landTax !== DEFAULTS.landTax,
+        taxAmount: false,
+        expenseRatio: input.expenseRatio !== DEFAULTS.expenseRatio,
+        marginalRate: input.marginalRate !== DEFAULTS.marginalRate,
+        agencyRate: input.agencyRate !== DEFAULTS.agencyRate,
+        agencyFixed: false
+      };
+      var tags = document.querySelectorAll(".example-tag[data-tag]");
+      for (var i = 0; i < tags.length; i++) {
+        var key = tags[i].getAttribute("data-tag");
+        tags[i].classList.toggle("is-hidden", !!map[key]);
+      }
+    }
+
+    function renderTables(baseInput) {
+      var vacBody = document.querySelector("#table-vacancy tbody");
+      var rateBody = document.querySelector("#table-rate tbody");
+      var vacancies = [0, 5, 10, 15, 20];
+      var currentV = baseInput.vacancy;
+      if (currentV !== null && vacancies.indexOf(currentV) === -1) {
+        vacancies.push(currentV);
+        vacancies.sort(function (a, b) { return a - b; });
+      }
+      var vHtml = "";
+      vacancies.forEach(function (v) {
+        var inp = Object.assign({}, baseInput, { vacancy: v });
+        var r = calculate(inp);
+        if (!r.ok) return;
+        var cur = currentV !== null && Math.abs(v - currentV) < 1e-9;
+        vHtml += "<tr class='" + (cur ? "is-current" : "") + "'>";
+        vHtml += "<td>" + v.toFixed(2).replace(/\.?0+$/, "") + "%" + (cur ? "（目前）" : "") + "</td>";
+        vHtml += "<td>" + fmtMoney(r.effRent) + "</td>";
+        vHtml += "<td>" + fmtPct(r.netYield) + "</td>";
+        vHtml += "<td class='" + (r.yearCf < 0 ? "is-neg" : r.yearCf > 0 ? "is-pos" : "") + "'>" + fmtMoney(r.yearCf) + "</td>";
+        vHtml += "<td>" + paybackText(r.payback) + "</td></tr>";
+      });
+      vacBody.innerHTML = vHtml || "<tr><td colspan='5'>條件不完整，無法試算。</td></tr>";
+      var vacCards = document.getElementById("cards-vacancy");
+      var vCards = "";
+      vacancies.forEach(function (v) {
+        var inp = Object.assign({}, baseInput, { vacancy: v });
+        var r = calculate(inp);
+        if (!r.ok) return;
+        var cur = currentV !== null && Math.abs(v - currentV) < 1e-9;
+        vCards += "<article class='sens-item" + (cur ? " is-current" : "") + "'>";
+        vCards += "<header>空置率 " + v.toFixed(2).replace(/\.?0+$/, "") + "%" + (cur ? "（目前）" : "") + "</header><dl>";
+        vCards += "<div><dt>有效年租金</dt><dd>" + fmtMoney(r.effRent) + "</dd></div>";
+        vCards += "<div><dt>淨投報率</dt><dd>" + fmtPct(r.netYield) + "</dd></div>";
+        vCards += "<div><dt>第 1 年年現金流</dt><dd class='" + cfClass(r.yearCf) + "'>" + fmtMoney(r.yearCf) + "</dd></div>";
+        vCards += "<div><dt>回本年限</dt><dd>" + paybackText(r.payback) + "</dd></div>";
+        vCards += "</dl></article>";
+      });
+      vacCards.innerHTML = vCards || "<p class='hint'>條件不完整，無法試算。</p>";
+
+      var currentR = baseInput.rate;
+      var rates = [];
+      if (currentR === null) {
+        rateBody.innerHTML = "<tr><td colspan='5'>請先填年利率。</td></tr>";
+        document.getElementById("cards-rate").innerHTML = "<p class='hint'>請先填年利率。</p>";
+        return;
+      }
+      [-0.6, -0.3, 0, 0.3, 0.6].forEach(function (d) {
+        var val = Math.round((currentR + d) * 100) / 100;
+        if (val < 0) return;
+        rates.push(val);
+      });
+      var rHtml = "";
+      rates.forEach(function (rt) {
+        var inp = Object.assign({}, baseInput, { rate: rt });
+        var r = calculate(inp);
+        if (!r.ok) return;
+        var cur = Math.abs(rt - currentR) < 1e-9;
+        rHtml += "<tr class='" + (cur ? "is-current" : "") + "'>";
+        rHtml += "<td>" + rt.toFixed(2) + "%" + (cur ? "（目前）" : "") + "</td>";
+        rHtml += "<td>" + fmtMoney(r.pmt) + "</td>";
+        rHtml += "<td class='" + (r.yearCf < 0 ? "is-neg" : r.yearCf > 0 ? "is-pos" : "") + "'>" + fmtMoney(r.yearCf) + "</td>";
+        rHtml += "<td class='" + (r.roe !== null && r.roe < 0 ? "is-neg" : r.roe !== null && r.roe > 0 ? "is-pos" : "") + "'>" + (r.roe === null ? "不適用" : fmtPct(r.roe)) + "</td>";
+        rHtml += "<td>" + paybackText(r.payback) + "</td></tr>";
+      });
+      rateBody.innerHTML = rHtml || "<tr><td colspan='5'>條件不完整，無法試算。</td></tr>";
+      var rateCards = document.getElementById("cards-rate");
+      var rCards = "";
+      rates.forEach(function (rt) {
+        var inp = Object.assign({}, baseInput, { rate: rt });
+        var r = calculate(inp);
+        if (!r.ok) return;
+        var cur = Math.abs(rt - currentR) < 1e-9;
+        rCards += "<article class='sens-item" + (cur ? " is-current" : "") + "'>";
+        rCards += "<header>年利率 " + rt.toFixed(2) + "%" + (cur ? "（目前）" : "") + "</header><dl>";
+        rCards += "<div><dt>每月本息</dt><dd>" + fmtMoney(r.pmt) + "</dd></div>";
+        rCards += "<div><dt>第 1 年年現金流</dt><dd class='" + cfClass(r.yearCf) + "'>" + fmtMoney(r.yearCf) + "</dd></div>";
+        rCards += "<div><dt>現金回報率</dt><dd class='" + (r.roe === null ? "" : cfClass(r.roe)) + "'>" + (r.roe === null ? "不適用" : fmtPct(r.roe)) + "</dd></div>";
+        rCards += "<div><dt>回本年限</dt><dd>" + paybackText(r.payback) + "</dd></div>";
+        rCards += "</dl></article>";
+      });
+      rateCards.innerHTML = rCards || "<p class='hint'>條件不完整，無法試算。</p>";
+    }
+
+    function render() {
+      var input = readInputs();
+      updateTags(input);
+      toggleDeps(input);
+      var result = calculate(input);
+      var kicker = document.getElementById("results-kicker");
+      var err = document.getElementById("error-banner");
+      kicker.textContent = isModified(input)
+        ? "已依你修改的數字即時計算。"
+        : "目前套用範例數字，請改成你的物件後再解讀。";
+
+      if (Number.isFinite(result.loan) || result.loan === 0) {
+        setOut("loan", fmtMoney(result.loan));
+      } else {
+        setOut("loan", "—");
+      }
+      if (Number.isFinite(result.contractRent) || result.contractRent === 0) {
+        setOut("contractRent", fmtMoney(result.contractRent));
+      } else {
+        setOut("contractRent", "—");
+      }
+
+      var ltvWarn = document.getElementById("ltv-warn");
+      if (result.ok && result.ltv > 0.7 + 1e-9) {
+        ltvWarn.hidden = false;
+        ltvWarn.innerHTML = "目前貸款成數超過 70%。央行自 2026 年 9 月 18 日起，已有一戶房貸者（第 2 戶）法定上限為七成且不得有寬限期；第 3 戶以上為三成。這是法定上限，不是核貸承諾。詳見<a href=\"https://www.cbc.gov.tw/tw/cp-459-192872-a2d83-1.html\" target=\"_blank\" rel=\"noopener noreferrer\">央行公告</a>。";
+      } else {
+        ltvWarn.hidden = true;
+        ltvWarn.textContent = "";
+      }
+
+      if (!result.ok) {
+        err.hidden = false;
+        err.textContent = result.errors.join(" ");
+        ["gross", "netYield", "monthlyCf", "payback", "paybackShort", "grossRent", "effRent", "effGross", "mgmtYear", "agencyYear", "incomeTax", "otherYear", "pmt", "pmtYear", "interestY1", "principalY1", "yearCf", "roe", "roeHero", "profitY1"].forEach(function (k) {
+          if (k === "loan" || k === "contractRent") return;
+          setOut(k, "—");
+        });
+        toneKpi("kpi-gross", NaN);
+        toneKpi("kpi-net", NaN);
+        toneKpi("kpi-cf", NaN);
+        toneKpi("kpi-payback", NaN);
+        toneHero("kpi-roe", NaN);
+        toneHero("dock-roe", NaN);
+        renderTables(input);
+        window.__CALC_RESULT__ = result;
+        return result;
+      }
+
+      err.hidden = true;
+      err.textContent = "";
+      setOut("gross", fmtPct(result.gross));
+      setOut("netYield", fmtPct(result.netYield));
+      setOut("monthlyCf", fmtMoney(result.monthlyCf));
+      setOut("payback", paybackText(result.payback));
+      setOut("paybackShort", paybackShort(result.payback));
+      setOut("grossRent", fmtMoney(result.grossRent));
+      setOut("effRent", fmtMoney(result.effRent));
+      setOut("effGross", fmtPct(result.effGross));
+      setOut("mgmtYear", fmtMoney(result.mgmtYear));
+      setOut("agencyYear", fmtMoney(result.agencyYear));
+      setOut("incomeTax", fmtMoney(result.incomeTax));
+      setOut("otherYear", fmtMoney(result.otherYear));
+      setOut("pmt", fmtMoney(result.pmt));
+      setOut("pmtYear", fmtMoney(result.pmtYear));
+      setOut("interestY1", fmtMoney(result.interestY1));
+      setOut("principalY1", fmtMoney(result.principalY1));
+      setOut("yearCf", fmtMoney(result.yearCf));
+      setOut("roe", result.roe === null ? "不適用（自備款為 0）" : fmtPct(result.roe));
+      setOut("roeHero", result.roe === null ? "不適用" : fmtPct(result.roe));
+      setOut("profitY1", fmtMoney(result.profitY1));
+
+      toneKpi("kpi-gross", result.gross);
+      toneKpi("kpi-net", result.netYield);
+      toneKpi("kpi-cf", result.monthlyCf);
+      if (result.payback === Infinity) toneKpi("kpi-payback", -1);
+      else if (result.payback === null) toneKpi("kpi-payback", NaN);
+      else toneKpi("kpi-payback", 1);
+      toneHero("kpi-roe", result.roe);
+      toneHero("dock-roe", result.roe);
+
+      document.getElementById("row-cf-year").classList.toggle("is-neg", result.yearCf < 0);
+      document.getElementById("row-cf-year").classList.toggle("is-pos", result.yearCf > 0);
+      document.getElementById("row-roe").classList.toggle("is-neg", result.roe !== null && result.roe < 0);
+      document.getElementById("row-roe").classList.toggle("is-pos", result.roe !== null && result.roe > 0);
+      var dockCf = document.getElementById("dock-cf");
+      dockCf.classList.toggle("is-neg", result.monthlyCf < 0);
+      dockCf.classList.toggle("is-pos", result.monthlyCf > 0);
+
+      renderTables(input);
+      window.__CALC_RESULT__ = result;
+      window.__CALC_INPUT__ = input;
+      return result;
+    }
+
+    function toggleDeps(input) {
+      document.getElementById("dep-tax-a").hidden = input.taxMode !== "A";
+      document.getElementById("dep-tax-b").hidden = input.taxMode !== "B";
+      document.getElementById("hint-tax-b").hidden = input.taxMode !== "B";
+      document.getElementById("dep-agency-rate").hidden = input.agencyMode !== "比率";
+      document.getElementById("dep-agency-fixed").hidden = input.agencyMode !== "固定";
+    }
+
+    function formatField(id) {
+      var el = document.getElementById(id);
+      var n = parseNum(el.value);
+      if (n === null) return;
+      if (moneyIds.indexOf(id) !== -1) {
+        el.value = fmtIntMoney(n);
+      } else if (id === "rate") {
+        el.value = n.toFixed(2).replace(/\.?0+$/, function (m) { return m === ".00" ? ".00" : ""; });
+        if (el.value.indexOf(".") === -1 && Math.abs(n - Math.round(n)) > 0) el.value = n.toFixed(2);
+        if (DEFAULTS.rate === n) el.value = "2.20";
+        else el.value = (Math.round(n * 100) / 100).toFixed(2);
+      } else if (pctIds.indexOf(id) !== -1) {
+        el.value = fmtDec(n, 2);
+      } else {
+        el.value = fmtDec(n, 2);
+      }
+    }
+
+    function syncEquity(source) {
+      if (syncing) return;
+      syncing = true;
+      var price = parseNum(document.getElementById("price").value);
+      var equityEl = document.getElementById("equity");
+      var ltvEl = document.getElementById("ltv");
+      if (source === "price") source = lastEquitySource;
+      if (price === null || price < 0) {
+        syncing = false;
+        return;
+      }
+      if (source === "ltv") {
+        var ltv = parseNum(ltvEl.value);
+        if (ltv !== null) {
+          var eq = price * (1 - ltv / 100);
+          equityEl.value = fmtIntMoney(eq);
+          lastEquitySource = "ltv";
+        }
+      } else {
+        var equity = parseNum(equityEl.value);
+        if (equity !== null && price !== 0) {
+          var ltvv = (1 - equity / price) * 100;
+          ltvEl.value = fmtDec(Math.round(ltvv * 100) / 100, 2);
+          lastEquitySource = "equity";
+        }
+      }
+      syncing = false;
+    }
+
+    function setDefaults() {
+      document.getElementById("name").value = DEFAULTS.name;
+      document.getElementById("price").value = "14,100,000";
+      document.getElementById("equity").value = "4,230,000";
+      document.getElementById("ltv").value = "70";
+      document.getElementById("rate").value = "2.20";
+      document.getElementById("years").value = "30";
+      document.getElementById("rooms").value = "1";
+      document.getElementById("rentPerRoom").value = "105,000";
+      document.getElementById("rentTotal").value = "";
+      document.getElementById("vacancy").value = "0";
+      document.getElementById("maintenance").value = "0";
+      document.getElementById("mgmt").value = "18,000";
+      document.getElementById("otherExpense").value = "0";
+      document.getElementById("houseTax").value = "0";
+      document.getElementById("landTax").value = "0";
+      document.getElementById("taxAmount").value = "0";
+      document.getElementById("expenseRatio").value = "0";
+      document.getElementById("marginalRate").value = "0";
+      document.getElementById("agencyRate").value = "0";
+      document.getElementById("agencyFixed").value = "0";
+      document.querySelector('input[name="taxMode"][value="B"]').checked = true;
+      document.querySelector('input[name="agencyMode"][value="比率"]').checked = true;
+      lastEquitySource = "equity";
+      render();
+    }
+
+    function onInput(e) {
+      var id = e.target.id;
+      if (id === "equity") syncEquity("equity");
+      else if (id === "ltv") syncEquity("ltv");
+      else if (id === "price") syncEquity("price");
+      render();
+    }
+
+    function onBlur(e) {
+      var id = e.target.id;
+      if (!id) return;
+      if (moneyIds.indexOf(id) !== -1 || pctIds.indexOf(id) !== -1 || id === "years" || id === "rooms") {
+        formatField(id);
+      }
+      render();
+    }
+
+    var form = document.getElementById("calc-form");
+    form.addEventListener("input", onInput);
+    form.addEventListener("change", function (e) {
+      if (e.target.name === "taxMode" || e.target.name === "agencyMode") render();
+    });
+    form.addEventListener("blur", onBlur, true);
+    form.addEventListener("submit", function (e) { e.preventDefault(); render(); });
+    document.getElementById("btn-reset").addEventListener("click", setDefaults);
+
+    window.RentalCalc = {
+      calculate: calculate,
+      readInputs: readInputs,
+      render: render,
+      parseNum: parseNum,
+      fmtMoney: fmtMoney,
+      fmtPct: fmtPct,
+      paybackText: paybackText,
+      setDefaults: setDefaults,
+      DEFAULTS: DEFAULTS
+    };
+
+    render();
+  })();
+  </script>
+</body>
+</html>
