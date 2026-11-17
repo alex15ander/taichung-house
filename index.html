@@ -647,10 +647,10 @@
       </summary>
       <div class="disclosure-body">
         <ul>
-          <li>來源：內政部不動產成交案件實際資訊（實價登錄開放資料），2026-11-17 下載。</li>
-          <li>範圍：簽約日 2026/5/11～2026/10/18 的住宅買賣，已排除特殊交易，不含預售屋。</li>
+          <li>來源：內政部不動產成交案件實際資訊（實價登錄開放資料），<span id="note-dl-date">2026-11-17</span> 下載。</li>
+          <li>範圍：簽約日 <span id="note-range">2026/5/11～2026/10/18</span> 的住宅買賣，已排除特殊交易，不含預售屋。</li>
           <li>中位數代表整區一半成交比它高、一半比它低，不是個別物件的估價。</li>
-          <li>9、10 月筆數較少是因為登記有時間差，不代表成交量下滑。</li>
+          <li><span id="note-late-months">9、10</span> 月筆數較少是因為登記有時間差，不代表成交量下滑。</li>
           <li>車位沒有分開標價的交易無法扣掉車位，沒有列入單價計算，南屯、北屯等車位多的區，單價可能略為偏高。</li>
         </ul>
         <div class="author-credit">
@@ -666,6 +666,7 @@
 /**
  * 翔買鶴厝｜台中 8 區近半年成交行情資料
  * 原封不動放入，不修改或補任何數字
+ * 頁面載入後會從 Google Sheet（summary 分頁）讀最新數字；讀取失敗才使用下方內建備援資料。
  */
 const DATA = [
   {
@@ -1065,7 +1066,7 @@ function renderResultCard(record) {
 
     <!-- 每月成交筆數小長條圖 -->
     <div>
-      <div class="section-title">每月成交筆數（5月～10月）</div>
+      <div class="section-title">每月成交筆數（${MONTHS[0].label}～${MONTHS[MONTHS.length - 1].label}）</div>
       <div class="chart-container">
         <div class="chart-bars-wrap">
           ${chartBarsHtml}
@@ -1084,6 +1085,78 @@ function renderResultCard(record) {
       </a>
     </div>
   `;
+}
+
+// ---- 從 Google Sheet 讀最新行情（失敗時保留上方內建資料）----
+const SUMMARY_CSV_URL = "https://docs.google.com/spreadsheets/d/1AWwfhgA-pRsbKWa_T43dkDsYgd4h2EbnQs0prbgBWu8/gviz/tq?tqx=out:csv&headers=1&sheet=summary";
+
+function parseCsv(text) {
+  const rows = []; let row = [], cur = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') q = false;
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cur); rows.push(row); row = []; cur = "";
+    } else cur += c;
+  }
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(v => v.trim() !== ""));
+}
+
+function summaryToData(rows) {
+  const h = rows[0].map(x => x.trim());
+  const col = name => { const i = h.indexOf(name); if (i < 0) throw new Error("missing " + name); return i; };
+  const num = v => { v = (v || "").trim(); if (v === "") return null; const n = Number(v); if (!isFinite(n)) throw new Error("bad number " + v); return n; };
+  const out = rows.slice(1).map(r => {
+    const g = name => r[col(name)];
+    const monthly = {};
+    (g("monthly_counts") || "").split(";").forEach(p => { const [k, v] = p.split(":"); if (k && v) monthly[k.trim()] = Number(v); });
+    const rec = {
+      district: g("district").trim(),
+      transactions: num(g("transactions")),
+      unit_price_samples: num(g("unit_price_samples")),
+      median_unit_wan_per_ping: num(g("median_unit_wan_per_ping")),
+      median_total_wan: num(g("median_total_wan")),
+      by_type: { "大樓華廈": num(g("type_bldg")), "透天": num(g("type_house")), "公寓": num(g("type_apt")) },
+      by_age: { "5年內": num(g("age_le5")), "6～20年": num(g("age_6_20")), "20年以上": num(g("age_gt20")) },
+      monthly_counts: monthly,
+      low_sample: ["1", "TRUE", "true"].includes((g("low_sample") || "").trim()),
+    };
+    if (!(rec.transactions > 0) || rec.median_unit_wan_per_ping === null) throw new Error("bad row " + rec.district);
+    return rec;
+  });
+  const meta = { dl: rows[1][col("download_date")].trim(), rs: rows[1][col("range_start")].trim(), re: rows[1][col("range_end")].trim() };
+  return { out, meta };
+}
+
+async function loadLatestSummary() {
+  try {
+    const res = await fetch(SUMMARY_CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const { out, meta } = summaryToData(parseCsv(await res.text()));
+    const names = DATA.map(d => d.district);
+    if (out.length !== names.length || !names.every(n => out.some(o => o.district === n))) throw new Error("district mismatch");
+    const ordered = names.map(n => out.find(o => o.district === n));
+    DATA.splice(0, DATA.length, ...ordered);
+    const keys = [...new Set(ordered.flatMap(d => Object.keys(d.monthly_counts)))].sort();
+    if (keys.length) MONTHS.splice(0, MONTHS.length, ...keys.map(k => ({ key: k, label: Number(k.slice(5)) + "月" })));
+    const fmt = s => { const [y, m, d] = s.split("-").map(Number); return `${y}/${m}/${d}`; };
+    if (/^\d{4}-\d{2}-\d{2}$/.test(meta.dl)) document.getElementById("note-dl-date").textContent = meta.dl;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(meta.rs) && /^\d{4}-\d{2}-\d{2}$/.test(meta.re))
+      document.getElementById("note-range").textContent = `${fmt(meta.rs)}～${fmt(meta.re)}`;
+    document.getElementById("note-late-months").textContent = MONTHS.slice(-2).map(m => m.label.replace("月", "")).join("、");
+    document.documentElement.dataset.source = "sheet";
+    if (currentDistrictName) selectDistrict(currentDistrictName, false);
+  } catch (e) {
+    document.documentElement.dataset.source = "fallback";
+    console.warn("使用內建備援資料：", e);
+  }
 }
 
 // 頁面初始化
@@ -1113,6 +1186,8 @@ document.addEventListener("DOMContentLoaded", () => {
       selectDistrict(DATA[0].district, false);
     }
   });
+
+  loadLatestSummary();
 });
 </script>
 
