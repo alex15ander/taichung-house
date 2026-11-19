@@ -70,6 +70,31 @@
     .cta{position:fixed;left:0;right:0;bottom:0;background:rgba(10,10,10,.94);padding:10px 0 calc(10px + env(safe-area-inset-bottom));z-index:9}
     .cta .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#F7F1E3;font-size:14px}
     .btn-line{background:var(--line);color:#fff;text-decoration:none;font-weight:700;border-radius:999px;padding:9px 16px;white-space:nowrap}
+
+    .tabs{position:sticky;top:0;z-index:8;background:rgba(246,241,232,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--hair);padding:10px 0}
+    .tabs .wrap{display:flex;gap:10px}
+    .tab{flex:1;font-size:18px;font-weight:800;padding:12px 10px;border-radius:999px;border:2px solid var(--brand);background:#fff;color:var(--brand);cursor:pointer;font-family:inherit}
+    .tab[aria-selected="true"]{background:var(--brand);color:#fff}
+    .tab small{display:block;font-size:12px;font-weight:500;opacity:.85}
+    .view[hidden]{display:none!important}
+    .s-q{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .s-q label{display:block;font-weight:800;font-size:17px;margin-bottom:6px}
+    .s-q input,.s-q select{width:100%;font-size:22px;padding:12px 14px;border:2px solid #d7c8ae;border-radius:12px;background:#fff;font-family:inherit}
+    .s-hint{font-size:14px;color:var(--ink-soft);margin-top:6px}
+    .s-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+    .s-card{background:#fff;border:1px solid var(--hair);border-radius:16px;padding:16px;border-top:6px solid #6B6560}
+    .s-card.c{border-top-color:var(--gold)}.s-card.s{border-top-color:var(--brand)}
+    .s-card h3{font-size:20px;margin-bottom:10px}
+    .s-flow{font-size:16px;display:grid;gap:4px}
+    .s-flow div{display:flex;justify-content:space-between;gap:8px}
+    .s-flow .arrow{color:var(--muted);text-align:center;display:block;font-size:14px}
+    .s-tax{margin-top:10px;background:#fff4f5;border-radius:12px;padding:12px;text-align:center}
+    .s-tax .t{font-size:15px;color:var(--brand-deep);font-weight:700}
+    .s-tax .v{font-size:40px;font-weight:900;color:var(--brand-deep);line-height:1.15}
+    .s-save{margin-top:8px;text-align:center;font-size:17px;font-weight:800}
+    .s-how{margin-top:10px;font-size:15px;color:var(--ink-soft);border-top:1px dashed var(--hair);padding-top:8px}
+    .s-btn{display:inline-block;margin-top:12px;font-size:17px;font-weight:800;padding:12px 20px;border-radius:999px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:inherit}
+    @media (max-width:820px){.s-q{grid-template-columns:1fr 1fr}.s-cards{grid-template-columns:1fr}.tab{font-size:17px}}
     @media (max-width:820px){.grid3{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kpi .v{font-size:20px}}
     @media print{.cta{display:none}}
   </style>
@@ -81,6 +106,35 @@
   <span class="badge">試算 · 資料查證 2026-11-19</span>
 </div></header>
 
+<nav class="tabs" aria-label="版本切換"><div class="wrap" role="tablist">
+  <button class="tab" role="tab" id="tab-simple" aria-controls="view-simple" aria-selected="true" type="button">簡易版<small>只算所得稅</small></button>
+  <button class="tab" role="tab" id="tab-detail" aria-controls="view-detail" aria-selected="false" type="button">詳細版<small>含房屋稅、地價稅、保費</small></button>
+</div></nav>
+
+<main class="wrap view" id="view-simple" role="tabpanel" aria-labelledby="tab-simple">
+<section class="hero">
+  <h1>收多少租金，要繳多少所得稅？</h1>
+  <p class="lead">填 4 個數字，馬上比較<strong>一般房東、公益出租人、社宅包租代管</strong>大約要多繳多少綜合所得稅。</p>
+</section>
+<section class="card">
+  <div class="s-q">
+    <div><label for="s_rent">每月租金（每間）</label><input id="s_rent" type="number" inputmode="numeric" value="12000" min="0"></div>
+    <div><label for="s_units">幾間（戶／門牌）</label><input id="s_units" type="number" inputmode="numeric" value="1" min="0"></div>
+    <div><label for="s_months">一年租幾個月</label><input id="s_months" type="number" inputmode="numeric" value="12" min="0" max="12"></div>
+    <div><label for="s_rate">你的綜所稅級距</label><select id="s_rate"><option value="0.05" selected>5%</option><option value="0.12">12%</option><option value="0.2">20%</option><option value="0.3">30%</option><option value="0.4">40%</option></select></div>
+  </div>
+  <p class="s-hint" id="s_rateHint"></p>
+</section>
+<section class="s-cards" id="s_cards"></section>
+<section class="card">
+  <p class="warn" style="margin:0">⚠️ <strong>簡易估算</strong>：用你選的級距直接乘，<strong>未含房屋稅、地價稅、押金、補充保費</strong>；租金加進去後若跨到下一級距，實際稅額會略高。精算請看詳細版。</p>
+  <p style="margin:10px 0 0;font-size:15px">📌 <strong>資格提醒：</strong>公益出租人的租客必須是領租金補貼的人；社宅包租代管必須整戶（整個門牌）出租、不能分租，一個門牌隔成多間的隔套進不去。</p>
+  <button type="button" class="s-btn" id="s_toDetail">用相同數字看詳細版 →</button>
+  <p class="note" style="margin-top:12px">依據：住宅法§15、§23、所得稅法、財政部 115 年度級距公告等，<a href="#sources" id="s_srcLink">看詳細版的官方來源</a>。本頁僅供試算，實際以稅捐機關核定為準。</p>
+</section>
+</main>
+
+<div class="view" id="view-detail" role="tabpanel" aria-labelledby="tab-detail" hidden>
 <main class="wrap">
 <section class="hero">
   <h1>出租身分稅費試算：一般房東、公益出租人、社宅包租代管</h1>
@@ -114,6 +168,7 @@
 
 <section class="card" id="inputs">
   <h2><span class="step">1</span>輸入條件</h2>
+  <p class="note" id="prefillNote" style="color:var(--brand-deep);font-weight:700"></p>
   <fieldset><legend>年度與租金</legend><div class="fields">
     <div class="field"><label for="year">適用年度</label>
       <select id="year"><option value="115" selected>115年度（2026 年租金，2027/5 申報）</option><option value="114">114年度（2025 年租金，2026/5 申報）</option></select>
@@ -248,12 +303,13 @@
   <h2>官方來源（查證日期 2026-11-19）</h2>
   <ol class="srclist" id="srcList"></ol>
 </section>
+</main>
+</div>
 
 <footer class="wrap">
   <p>本頁<strong>僅供試算與教育參考</strong>，不構成稅務或法律意見。實際稅額以稅捐稽徵機關核定、主管機關認定為準；法規與金額可能變動，資料查證日期 2026-11-19。投資出租有空租、修繕、法規變動等風險，請自行評估。</p>
   <p>© 翔買鶴厝</p>
 </footer>
-</main>
 
 <div class="cta"><div class="wrap"><span>想把這三種方案套到你的物件上試算？</span><a class="btn-line" href="https://line.me/R/ti/p/@825gowqf" target="_blank" rel="noopener noreferrer">加 LINE@ @825gowqf</a></div></div>
 <script id="engine">
@@ -430,7 +486,20 @@ var TaxEngine = (function () {
       net: gross - exemption - deduction - salaryDed - num(h.specialDed) };
   }
 
-  return { YEARS: YEARS, R: R, incomeTax: incomeTax, marginalRate: marginalRate, houseRateGeneral: houseRateGeneral,
+
+  // 簡易版：只算所得稅，用標準費用率、邊際稅率直接乘（與詳細版共用 monthlyParts 常數）
+  function simple(inp) {
+    var r = num(inp.rent), units = Math.max(0, num(inp.units, 1)), months = Math.min(12, Math.max(0, num(inp.months, 12))), rate = num(inp.rate);
+    var out = {};
+    ["general", "charity", "social"].forEach(function (t) {
+      var p = monthlyParts(t, r);
+      var annual = r * units * months, income = Math.max(0, (p.taxable - p.stdExp) * units * months);
+      out[t] = { annualRent: annual, exempt: p.exempt * units * months, rentalIncome: income, tax: income * rate };
+    });
+    ["general", "charity", "social"].forEach(function (t) { out[t].saving = out.general.tax - out[t].tax; });
+    return out;
+  }
+  return { simple: simple, YEARS: YEARS, R: R, incomeTax: incomeTax, marginalRate: marginalRate, houseRateGeneral: houseRateGeneral,
     calcRegime: calcRegime, calcAll: calcAll, estimateNet: estimateNet, monthlyParts: monthlyParts };
 })();
 </script>
@@ -572,6 +641,79 @@ var TaxEngine = (function () {
   document.querySelectorAll("input,select").forEach(function (e) { e.addEventListener("input", render); e.addEventListener("change", render); });
   $("useHelper").addEventListener("click", function () { $("otherNet").value = $("helperOut").dataset.net; render(); });
   render();
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  function fm(n) { return Math.round(n).toLocaleString("zh-TW"); }
+  var R = TaxEngine.R, Y = TaxEngine.YEARS["115"];
+  var HOW = {
+    general: "租金扣掉 " + R.generalExpenseRate * 100 + "% 費用，剩下 " + Math.round((1 - R.generalExpenseRate) * 100) + "% 算所得，再乘你的稅率。",
+    charity: "每間每月前 " + fm(R.charityExempt) + " 元免稅，超過的部分扣 " + R.charityExpenseRate * 100 + "% 費用，剩下的算所得再乘稅率。",
+    social: "每間每月前 " + fm(R.socialExempt) + " 元免稅，超過的部分扣 " + R.socialExpenseRate * 100 + "% 費用，剩下的算所得再乘稅率。"
+  };
+  var NAMES = { general: "一般房東", charity: "公益出租人", social: "社宅包租代管" };
+  // 級距說明（115 年度）
+  var b = Y.brackets, prev = 0, parts = [];
+  b.forEach(function (x) { var lo = prev / 10000, hi = x[0] / 10000; parts.push((x[0] === Infinity ? fm(lo) + " 萬以上" : (prev ? fm(lo) + "～" : "") + fm(hi) + " 萬" + (prev ? "" : "以下")) + "→" + Math.round(x[1] * 100) + "%"); prev = x[0]; });
+  $("s_rateHint").innerHTML = "不知道選哪個？看去年報稅單上的「綜合所得淨額」（已扣完免稅額、扣除額）：" + parts.join("、") + "（115 年度級距）。";
+  function renderSimple() {
+    var inp = { rent: $("s_rent").value, units: $("s_units").value, months: $("s_months").value, rate: $("s_rate").value };
+    var o = TaxEngine.simple(inp), h = "";
+    ["general", "charity", "social"].forEach(function (t) {
+      var x = o[t], cls = { general: "", charity: "c", social: "s" }[t];
+      h += "<article class='s-card " + cls + "' id='s_card_" + t + "'><h3>" + NAMES[t] + "</h3><div class='s-flow num'>"
+        + "<div><span>一年租金收入</span><b>" + fm(x.annualRent) + " 元</b></div><span class='arrow'>↓</span>"
+        + "<div><span>要報稅的租賃所得</span><b>" + fm(x.rentalIncome) + " 元</b></div></div>"
+        + "<div class='s-tax'><div class='t'>大約要多繳所得稅</div><div class='v num' data-tax='" + x.tax + "'>" + fm(x.tax) + " 元</div></div>"
+        + "<div class='s-save'>" + (t === "general" ? "（比較基準）" : (x.saving > 0 ? "比一般房東省 <span class='pos'>" + fm(x.saving) + " 元</span>" : "與一般房東相同")) + "</div>"
+        + "<p class='s-how'>" + HOW[t] + "</p></article>";
+    });
+    $("s_cards").innerHTML = h;
+  }
+  ["s_rent", "s_units", "s_months", "s_rate"].forEach(function (id) { $(id).addEventListener("input", renderSimple); $(id).addEventListener("change", renderSimple); });
+  renderSimple();
+
+  // 分頁切換
+  function show(mode, noScroll) {
+    var d = mode === "detail";
+    $("view-simple").hidden = d; $("view-detail").hidden = !d;
+    $("tab-simple").setAttribute("aria-selected", String(!d)); $("tab-detail").setAttribute("aria-selected", String(d));
+    var cta = document.querySelector(".cta span"); if (cta) cta.textContent = d ? "想把這三種方案套到你的物件上試算？" : "想知道你的物件適合哪種出租方式？";
+    if (!noScroll) window.scrollTo(0, 0);
+  }
+  function setUrl(mode) { try { history.replaceState(null, "", location.pathname + (mode === "detail" ? "?mode=detail" : "")); } catch (e) {} }
+  $("tab-simple").addEventListener("click", function () { show("simple"); setUrl("simple"); });
+  $("tab-detail").addEventListener("click", function () { show("detail"); setUrl("detail"); });
+  function fromLocation() {
+    var q = new URLSearchParams(location.search).get("mode"), hsh = location.hash.replace("#", "");
+    if (hsh === "simple" || q === "simple") return "simple";
+    if (q === "detail" || hsh === "detail") return "detail";
+    if (hsh) { var el = document.getElementById(hsh); if (el && $("view-detail").contains(el)) return "detail"; }
+    return "simple";
+  }
+  show(fromLocation(), true);
+  var h0 = location.hash.replace("#", ""); if (h0 && h0 !== "detail" && h0 !== "simple" && document.getElementById(h0)) setTimeout(function () { document.getElementById(h0).scrollIntoView(); }, 50);
+  window.addEventListener("hashchange", function () { var m = fromLocation(); show(m, true); var el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); });
+  $("s_srcLink").addEventListener("click", function (e) { e.preventDefault(); show("detail", true); setUrl("detail"); $("sources").scrollIntoView(); });
+
+  // 帶相同數字到詳細版
+  $("s_toDetail").addEventListener("click", function () {
+    function set(id, v) { var el = $(id); el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }
+    set("year", "115"); set("rent", $("s_rent").value); set("units", $("s_units").value); set("months", $("s_months").value);
+    set("rentCharity", ""); set("rentSocial", ""); set("expenseMode", "std");
+    var rate = Number($("s_rate").value), net = Number($("otherNet").value);
+    if (TaxEngine.marginalRate(Math.max(1, net), "115") !== rate) {
+      // 依所選級距暫填該級距的下限（使用者應改成實際所得淨額）
+      var lo = 0; for (var i = 0; i < Y.brackets.length; i++) { if (Y.brackets[i][1] === rate) break; lo = Y.brackets[i][0] + 1; }
+      set("otherNet", lo || 1);
+    }
+    show("detail"); setUrl("detail");
+    var n = $("prefillNote"); if (n) n.textContent = "已帶入簡易版的租金、間數、月數；「其他綜合所得淨額」暫填 " + fm(Number($("otherNet").value)) + "（" + Math.round(rate * 100) + "% 級距起點），請改成你的實際數字。";
+    $("inputs").scrollIntoView();
+  });
 })();
 </script>
 </body>
