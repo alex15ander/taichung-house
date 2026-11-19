@@ -55,6 +55,7 @@
     .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
     .kpi{background:#fff;border:1px solid var(--hair);border-radius:12px;padding:10px 12px}
     .kpi .t{font-size:13px;color:var(--muted)}.kpi .v{font-size:24px;font-weight:800}.kpi .d{font-size:13px}
+    .kpi .d.parts{color:var(--muted);font-size:12px;margin-top:2px}.kpi .d.save{font-size:15px;margin-top:4px}.kpi .d.net{font-size:12px;color:var(--muted);margin-top:4px;border-top:1px dashed var(--hair);padding-top:4px}.kpi .muted{color:var(--muted)}.bad-kpi{background:var(--bad-bg)}
     .kpi.c{border-left:5px solid var(--gold)}.kpi.s{border-left:5px solid var(--brand)}.kpi.g{border-left:5px solid #6B6560}.kpi.l{border-left:5px solid #3d3d3d}
     details.fx{border:1px solid var(--hair);border-radius:12px;background:#fff;margin:8px 0;padding:8px 12px}
     details.fx summary{cursor:pointer;font-weight:700}
@@ -77,6 +78,7 @@
     .tab[aria-selected="true"]{background:var(--brand);color:#fff}
     .tab small{display:block;font-size:12px;font-weight:500;opacity:.85}
     .view[hidden]{display:none!important}
+    .card,.srclist li{scroll-margin-top:84px}
     .s-q{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
     .s-q label{display:block;font-weight:800;font-size:17px;margin-bottom:6px}
     .s-q input,.s-q select{width:100%;font-size:22px;padding:12px 14px;border:2px solid #d7c8ae;border-radius:12px;background:#fff;font-family:inherit}
@@ -330,6 +332,7 @@ var TaxEngine = (function () {
     generalExpenseRate: 0.43,          // S5 所得稅法/財政部 43%
     charityExempt: 15000, charityExpenseRate: 0.43,   // S1 住宅法§15；S4 國稅局
     socialExempt: 15000, socialExpenseRate: 0.60,     // S2 住宅法§23
+    socialRentCap: 35000,              // S18 住都中心執行要點：臺中市市場租金上限
     leaseExempt: 6000, leaseMidCap: 20000, leaseMidRate: 0.53, leaseHighRate: 0.43, // S3 租賃條例§17
     houseRateSelf: 0.012,              // S10 房屋稅條例§5、S11 台中徵收率
     houseRateSocial: 0.012,            // S12 台中自治條例§4
@@ -380,9 +383,13 @@ var TaxEngine = (function () {
     var Y = YEARS[year];
     var units = Math.max(0, num(inp.units, 1));
     var months = Math.min(12, Math.max(0, num(inp.months, 12)));
-    var r = num(inp.rents && inp.rents[type] != null && inp.rents[type] !== "" ? inp.rents[type] : inp.rent);
+    // 各身分另填的月租金：空白、0、負數或非數字一律視為「同一般房東」，避免租金被當成 0
+    var ov = inp.rents ? inp.rents[type] : null, ovNum = Number(ov);
+    var hasOv = ov != null && ov !== "" && isFinite(ovNum) && ovNum > 0;
+    var r = hasOv ? ovNum : num(inp.rent);
     var p = monthlyParts(type, r);
-    var o = { type: type, rent: r, units: units, months: months };
+    var o = { type: type, rent: r, units: units, months: months, rentOverride: hasOv,
+      rentOverrideIgnored: ov != null && ov !== "" && !hasOv };
     o.annualRent = r * units * months;
     o.exempt = p.exempt * units * months;
     o.taxableRent = p.taxable * units * months;
@@ -462,14 +469,22 @@ var TaxEngine = (function () {
     o.nhi = o.nhiPerMonth * months;
     o.totalTax = o.incomeTaxInc + o.houseTax + o.landTax + o.nhi;
     o.netRent = o.annualRent - o.totalTax;
+    // 資格／輸入檢查（不符時卡片顯示原因，不顯示負數淨租金）
+    o.issues = [];
+    if (!(o.annualRent > 0)) o.issues.push("沒有租金收入：請確認月租金、戶數、出租月數都大於 0");
+    if (type === "social" && r > R.socialRentCap) o.issues.push("月租 " + Math.round(r).toLocaleString("zh-TW") + " 元超過臺中市社宅包租代管市場租金上限 " + R.socialRentCap.toLocaleString("zh-TW") + " 元，不能加入");
+    o.eligible = o.issues.length === 0;
     return o;
   }
 
   function calcAll(inp) {
     var out = {};
     ["general", "charity", "social", "lease"].forEach(function (t) { out[t] = calcRegime(t, inp); });
-    ["charity", "social", "lease"].forEach(function (t) { out[t].diff = out[t].netRent - out.general.netRent; });
-    out.general.diff = 0;
+    ["charity", "social", "lease"].forEach(function (t) {
+      out[t].diff = out[t].netRent - out.general.netRent;
+      out[t].taxSaving = out.general.totalTax - out[t].totalTax;   // 正值＝比一般房東少繳
+    });
+    out.general.diff = 0; out.general.taxSaving = 0;
     return out;
   }
 
@@ -565,14 +580,15 @@ var TaxEngine = (function () {
       ["房屋稅", "houseTax", "評定現值 × 稅率"],
       ["地價稅", "landTax", "申報地價 × 面積 × 稅率"],
       ["二代健保補充保費", "nhi", "法人單次給付 ≥ 2 萬 × 2.11%"],
-      ["稅費合計", "totalTax", ""],
+      ["全年稅費合計", "totalTax", "綜所稅＋房屋稅＋地價稅＋補充保費"],
+      ["比一般房東少繳稅費", "taxSaving", "綠色＝少繳，紅色＝多繳"],
       ["年度稅後淨租金", "netRent", "全年租金 − 稅費合計"],
-      ["與一般房東差額", "diff", "正值＝比一般房東多賺"],
+      ["淨租金與一般房東差額", "diff", "各身分月租不同時才會和少繳稅費不同"],
       ["（參考）業者扣繳稅款・預繳可抵稅", "withhold", "不計入成本"]
     ];
     var html = "";
     rows.forEach(function (r) {
-      var cls = r[1] === "netRent" ? "hl" : (r[1] === "totalTax" ? "total" : (r[1] === "withhold" ? "sub" : ""));
+      var cls = r[1] === "totalTax" ? "hl" : (r[1] === "taxSaving" ? "total" : (r[1] === "withhold" || r[1] === "netRent" || r[1] === "diff" ? "sub" : ""));
       html += "<tr class='" + cls + "'><td>" + r[0] + (r[2] ? "<span class='why' style='margin-left:0'>" + r[2] + "</span>" : "") + "</td>";
       ["general", "charity", "social", "lease"].forEach(function (t) {
         var o = out[t], val = typeof r[1] === "function" ? r[1](o) : o[r[1]], extra = "";
@@ -581,8 +597,11 @@ var TaxEngine = (function () {
         if (r[1] === "incomeTaxInc") extra = "<span class='why'>邊際稅率 " + pct(o.marginal) + "</span>";
         if (r[1] === "nhi" && !o.corpPayer) extra = "<span class='why'>給付人為個人，不扣</span>";
         if (r[1] === "nhi" && o.corpPayer && !o.nhi) extra = "<span class='why'>每次給付未達 2 萬，免扣</span>";
-        var c = r[1] === "diff" ? (val > 0 ? "pos" : (val < 0 ? "neg" : "")) : "";
-        html += "<td class='num " + c + (t === "lease" ? " lease-col" : "") + "' style='" + (t === "lease" && !showLease ? "display:none" : "") + "'>" + (r[1] === "diff" && val > 0 ? "+" : "") + fm(val) + extra + "</td>";
+        var sg = r[1] === "diff" || r[1] === "taxSaving";
+        var c = sg ? (val > 0.5 ? "pos" : (val < -0.5 ? "neg" : "")) : "";
+        var txt = (sg && t === "general") ? "—" : (r[1] === "taxSaving" ? (val > 0.5 ? "少繳 " + fm(val) : (val < -0.5 ? "多繳 " + fm(-val) : "相同")) : ((r[1] === "diff" && val > 0 ? "+" : "") + fm(val)));
+        if (r[1] === "netRent" && !o.eligible) extra = "<span class='why neg'>不符資格／輸入不完整</span>";
+        html += "<td class='num " + c + (t === "lease" ? " lease-col" : "") + "' style='" + (t === "lease" && !showLease ? "display:none" : "") + "'>" + txt + extra + "</td>";
       });
       html += "</tr>";
     });
@@ -590,12 +609,24 @@ var TaxEngine = (function () {
     var k = "";
     types.forEach(function (t) {
       var o = out[t], cls = { general: "g", charity: "c", social: "s", lease: "l" }[t];
-      k += "<div class='kpi " + cls + "'><div class='t'>" + NAMES[t] + "・稅後淨租金</div><div class='v num'>" + fm(o.netRent) + "</div><div class='d'>稅費 " + fm(o.totalTax) + (t === "general" ? "" : "｜差額 <b class='" + (o.diff >= 0 ? "pos" : "neg") + "'>" + (o.diff > 0 ? "+" : "") + fm(o.diff) + "</b>") + "</div></div>";
+      if (!o.eligible) {
+        k += "<div class='kpi " + cls + " bad-kpi'><div class='t'>" + NAMES[t] + "・全年稅費</div><div class='v neg'>不符資格</div><div class='d'>" + o.issues.join("；") + "</div></div>";
+        return;
+      }
+      var parts = ["綜所稅 " + fm(o.incomeTaxInc), "房屋稅 " + fm(o.houseTax), "地價稅 " + fm(o.landTax)];
+      if (o.nhi > 0) parts.push("補充保費 " + fm(o.nhi));
+      var sv = t === "general" ? "<span class='muted'>（比較基準）</span>"
+        : (o.taxSaving > 0.5 ? "比一般房東<b class='pos'>少繳 " + fm(o.taxSaving) + "</b>" : (o.taxSaving < -0.5 ? "比一般房東<b class='neg'>多繳 " + fm(-o.taxSaving) + "</b>" : "與一般房東相同"));
+      k += "<div class='kpi " + cls + "'><div class='t'>" + NAMES[t] + "・全年稅費</div><div class='v num'>" + fm(o.totalTax) + " 元</div>"
+        + "<div class='d parts'>" + parts.join("＋") + "</div><div class='d save'>" + sv + "</div>"
+        + "<div class='d net'>稅後淨租金 " + fm(o.netRent) + (o.rentOverride ? "（月租 " + fm(o.rent) + "）" : "") + "</div></div>";
     });
     $("kpis").innerHTML = k;
     // 警示
     var w = [];
     if (Number(v("rentSocial") || inp.rent) > 35000) w.push("社宅包租代管：臺中市市場租金上限每月 35,000 元，超過不能加入 <a href='#S18'>S18</a>。");
+    if (out.charity.rentOverrideIgnored) w.push("「公益出租人月租金」填了 0 或無效數字，已改用一般房東月租 " + fm(inp.rent) + " 元計算；若要另填，請輸入大於 0 的金額。");
+    if (out.social.rentOverrideIgnored) w.push("「社宅方案月租金」填了 0 或無效數字，已改用一般房東月租 " + fm(inp.rent) + " 元計算。");
     if (inp.months < 12) w.push("出租未滿 12 個月：房屋稅、地價稅本頁仍按全年計 <span class='tbd'>待確認</span>。");
     if (!inp.houseTaxOverride && out.general.rentStdQualified === false && inp.rentStdMode === "auto") w.push("一般房東租賃所得 " + fm(out.general.rentalIncome) + " 元，低於租金標準 " + fm(out.general.rentStandard) + " 元，所以房屋稅用其他非自住稅率。");
     if (out.social.corpPayer && out.social.withholdPerMonth > 0) w.push("社宅包租：業者每月要先扣繳 " + fm(out.social.withholdPerMonth) + " 元（預繳，申報時抵稅）。");
@@ -610,7 +641,7 @@ var TaxEngine = (function () {
              charity: "標準必要費用 = 應稅租金 " + fm(o.taxableRent) + " × 43% = " + fm(o.expenses),
              social: "標準必要費用 = 應稅租金 " + fm(o.taxableRent) + " × 60% = " + fm(o.expenses),
              lease: "標準必要費用（每戶每月）= (min(月租,20,000) − 6,000) × 53% + (月租 − 20,000) × 43% = " + fm(mp.stdExp) + "；× " + o.units + " 戶 × " + o.months + " 月 = " + fm(o.expenses) }[t]);
-      fx += "<details class='fx'" + (t === "general" ? " open" : "") + "><summary>" + NAMES[t] + "：稅後淨租金 " + fm(o.netRent) + " 元</summary><pre>"
+      fx += "<details class='fx'" + (t === "general" ? " open" : "") + "><summary>" + NAMES[t] + "：全年稅費 " + fm(o.totalTax) + " 元（稅後淨租金 " + fm(o.netRent) + "）" + (o.eligible ? "" : "｜不符資格：" + o.issues.join("；")) + "</summary><pre>"
         + "① 全年租金 = " + fm(o.rent) + " × " + o.units + " 戶 × " + o.months + " 月 = " + fm(o.annualRent) + "\n"
         + "② 免稅額 = min(月租, " + ({ general: "無", charity: "15,000", social: "15,000", lease: "6,000" }[t]) + ") × 戶數 × 月數 = " + fm(o.exempt) + "\n"
         + "③ 應稅租金 = ① − ② = " + fm(o.taxableRent) + "\n"
@@ -622,7 +653,8 @@ var TaxEngine = (function () {
         + (t === "general" ? "   租金標準 = (評定現值 × " + (inp.oldHouse ? "25%" : "10%") + " + 公告土地現值 × 面積 × 1.2%) × 戶數 × 月數/12 = " + fm(o.rentStandard) + "\n" : "")
         + "⑧ 地價稅 = " + (t === "social" ? "一般地價稅 × (1 − 80%)" : (t === "charity" ? "申報地價 " + fm(inp.landPrice) + " × " + inp.landArea + "㎡ × " + o.units + " 戶 × 2‰" : "申報地價 × 面積 × 戶數 × 10‰ 或實際稅單")) + " = " + fm(o.landTax) + "\n"
         + "⑨ 補充保費 = " + (o.corpPayer ? "每月給付 " + fm(o.rent * o.units) + (o.rent * o.units >= 20000 ? " ≥ 20,000 → × 2.11% × " + o.months + " 月" : " < 20,000 → 免扣") : "給付人為個人 → 不扣") + " = " + fm(o.nhi) + "\n"
-        + "⑩ 稅後淨租金 = ① − (⑥ + ⑦ + ⑧ + ⑨) = " + fm(o.netRent) + "\n"
+        + "⑩ 全年稅費合計 = ⑥ + ⑦ + ⑧ + ⑨ = " + fm(o.totalTax) + "\n"
+        + "   稅後淨租金 = ① − ⑩ = " + fm(o.netRent) + "\n"
         + (o.corpPayer ? "   （扣繳：每月應稅租金 " + fm(mp.taxable * o.units) + " × 10% = " + fm(mp.taxable * o.units * 0.1) + (o.withholdPerMonth ? "，超過 2,000 元要扣" : "，未超過 2,000 元免扣") + "；全年 " + fm(o.withhold) + "，可抵稅）\n" : "")
         + "</pre></details>";
     });
