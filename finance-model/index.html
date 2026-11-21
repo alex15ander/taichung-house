@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="翔買鶴厝買房收租財務模型計算機。依毛投報率、貸款成數、利率與管銷，即時比較毛投報率與現金投報率（現金回報率），並檢視貸款槓桿效應。試算僅供參考，不構成投資建議。">
+  <title>買房收租財務模型計算機｜毛投報 vs 現金投報｜翔買鶴厝</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <meta property="og:title" content="買房收租財務模型計算機｜毛投報 vs 現金投報｜翔買鶴厝">
+  <meta property="og:description" content="翔買鶴厝買房收租財務模型計算機。依毛投報率、貸款成數、利率與管銷，即時比較毛投報率與現金投報率（現金回報率），並檢視貸款槓桿效應。試算僅供參考，不構成投資建議。">
+  <meta property="og:image" content="https://alex15ander.github.io/taichung-house/finance-model/logo.png">
+  <meta property="og:url" content="https://alex15ander.github.io/taichung-house/finance-model/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="買房收租財務模型計算機｜毛投報 vs 現金投報｜翔買鶴厝">
+  <meta name="twitter:image" content="https://alex15ander.github.io/taichung-house/finance-model/logo.png">
+  <style>
+    :root {
+      --bg: #F6F1E8;
+      --bg-deep: #EDE4D4;
+      --paper: #FFFCF8;
+      --ink: #141414;
+      --ink-soft: #3A3A3A;
+      --muted: #6B6560;
+      --hair: #E4D8C4;
+      --brand: #C8102E;
+      --brand-deep: #9E0C24;
+      --gold: #C9A24A;
+      --gold-soft: #E6D5A8;
+      --gold-wash: #F6EDD6;
+      --header-bg: #0A0A0A;
+      --header-text: #F7F1E3;
+      --ok: #1A7A48;
+      --ok-bg: #E6F3EC;
+      --warn: #8A6A1A;
+      --warn-bg: #F6EDD6;
+      --danger: #C8102E;
+      --danger-bg: #F8E8EA;
+      --line: #06C755;
+      --line-dark: #05A84B;
+      --blue: #2563eb;
+      --blue-soft: #e8f0fe;
+      --purple: #7c3aed;
+      --purple-soft: #f3e8ff;
+      --amber: #d97706;
+      --amber-bg: #fff6e5;
+      --rose: #e11d48;
+      --rose-bg: #F8E8EA;
+      --shadow: 0 10px 30px rgba(10, 10, 10, 0.08);
+      --radius: 16px;
+      --font: "Noto Sans CJK TC", "Noto Sans TC", "Source Han Sans TC", "PingFang TC", "Hiragino Sans CNS", "Heiti TC", "Microsoft JhengHei", "Noto Sans", sans-serif;
+      --serif: "Noto Serif CJK TC", "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #efe4c8 0%, transparent 55%),
+        radial-gradient(900px 400px at 100% 0%, #f0e6d4 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.6;
+      font-size: 16px;
+      padding-bottom: calc(88px + env(safe-area-inset-bottom));
+      overflow-x: hidden;
+    }
+    img, svg, canvas { display: block; max-width: 100%; }
+    a { color: var(--brand); }
+    a:hover { color: var(--brand-deep); }
+    button, input, select { font-family: inherit; font-size: 16px; }
+    h1, h2, h3 { line-height: 1.3; margin: 0; font-weight: 700; word-break: keep-all; }
+    .wrap { width: min(1120px, calc(100% - 28px)); margin: 0 auto; }
+    .num, .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* Header */
+    .site-header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(201, 162, 74, 0.45);
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .logo {
+      width: 48px; height: 48px; flex: none;
+      border-radius: 50%;
+      border: 1px solid var(--gold);
+      box-shadow: 0 0 0 2px rgba(201, 162, 74, 0.22);
+      background: #000;
+      object-fit: cover;
+    }
+    .brand-name {
+      font-family: var(--serif);
+      font-size: 19px;
+      letter-spacing: 0.08em;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      margin-top: 1px;
+    }
+    .back-link {
+      flex: none;
+      font-size: 13px;
+      color: var(--gold-soft);
+      text-decoration: none;
+      border: 1px solid rgba(201, 162, 74, 0.45);
+      padding: 8px 12px;
+      border-radius: 999px;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .back-link:hover { color: var(--gold); }
+
+    /* Hero */
+    .hero { padding: 16px 0 8px; }
+    .hero-top {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hero h1 {
+      font-size: clamp(22px, 5vw, 32px);
+      letter-spacing: 0.02em;
+      margin-bottom: 6px;
+    }
+    .lead {
+      margin: 0;
+      color: var(--ink-soft);
+      max-width: 44rem;
+    }
+    .lead .c-gross { color: var(--ok); font-weight: 700; }
+    .lead .c-ltv { color: var(--blue); font-weight: 700; }
+    .lead .c-coc { color: var(--purple); font-weight: 700; }
+
+    .mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: var(--paper);
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      padding: 6px;
+      width: 100%;
+    }
+    .mode-btn {
+      min-height: 44px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .mode-btn.is-active {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+
+    /* Impact banner */
+    .impact-banner {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--hair);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .impact-banner.is-positive { border-color: rgba(26, 122, 72, 0.35); background: var(--ok-bg); }
+    .impact-banner.is-rose { border-color: rgba(200, 16, 46, 0.3); background: var(--rose-bg); }
+    .impact-banner.is-amber { border-color: rgba(217, 119, 6, 0.4); background: var(--amber-bg); }
+    .impact-banner.is-gray { border-color: var(--hair); background: #f4f1ea; }
+    .impact-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .metric {
+      flex: 1 1 140px;
+      background: #fff;
+      border: 1px solid var(--hair);
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-width: 0;
+    }
+    .metric-label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .metric-value {
+      display: block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: 22px;
+      line-height: 1.2;
+      word-break: break-all;
+    }
+    .metric-sub {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .metric-gross .metric-value { color: var(--ok); }
+    .metric-ltv .metric-value { color: var(--blue); }
+    .metric-coc {
+      flex: 1 1 180px;
+      background: #fff;
+      border-color: #ddd0f5;
+    }
+    .metric-coc .metric-value {
+      font-size: clamp(28px, 8vw, 40px);
+      color: var(--purple);
+    }
+    .flow-arrow {
+      display: none;
+      align-self: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .verdict-wrap { margin-top: 12px; }
+    .verdict {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #eee;
+      color: var(--ink-soft);
+      line-height: 1.4;
+    }
+    .verdict.is-positive { background: #d8f3e4; color: #145c36; }
+    .verdict.is-rose { background: var(--danger-bg); color: #8a0d1f; }
+    .verdict.is-amber { background: #fde68a; color: #92400e; border: 1px solid #f5b942; }
+    .verdict.is-gray { background: #e8e4dc; color: #444; }
+    .banner-detail {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+
+    /* Cards / panels */
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--hair);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin: 14px 0;
+    }
+    .card h2, .card-title {
+      font-size: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .card-title .hint { font-size: 12px; font-weight: 500; color: var(--muted); }
+
+    /* Controls */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    .slider-block label, .field-label {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .slider-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .slider-val.gross { color: var(--ok); }
+    .slider-val.ltv { color: var(--blue); }
+    input[type="range"] {
+      width: 100%;
+      height: 44px;
+      margin: 0;
+      accent-color: var(--brand);
+      cursor: pointer;
+      background: transparent;
+    }
+    .slider-marks {
+      display: flex;
+      justify-content: space-between;
+      gap: 2px;
+      font-size: 10px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.25;
+    }
+    .slider-marks span { flex: 1; text-align: center; word-break: keep-all; }
+    .slider-marks span:first-child { text-align: left; }
+    .slider-marks span:last-child { text-align: right; flex: 1.2; }
+    .hide-sm { display: none; }
+
+    .aux-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--hair);
+    }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      margin-bottom: 4px;
+    }
+    .field .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .field input, .field select {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid #d7c8ae;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+    .field .unit { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .reset-btn {
+      background: none;
+      border: 0;
+      color: var(--brand);
+      cursor: pointer;
+      padding: 8px 0;
+      min-height: 44px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      font-weight: 600;
+    }
+    .reset-btn:hover { color: var(--brand-deep); }
+
+    /* Chart */
+    .chart-head {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend i {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .legend i.dot-blue { background: #2563eb; }
+    .legend i.dot-gray { background: #94a3b8; border-radius: 0; height: 3px; width: 14px; vertical-align: middle; }
+    .legend i.dot-amber { background: #f59e0b; }
+    .chart-box {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--hair);
+      overflow: hidden;
+    }
+    #fan-canvas { width: 100%; height: 100%; touch-action: manipulation; }
+    #fan-tooltip {
+      position: absolute;
+      pointer-events: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.45;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      z-index: 20;
+      min-width: 170px;
+      max-width: min(240px, calc(100% - 16px));
+      font-variant-numeric: tabular-nums;
+    }
+    #fan-tooltip.hidden { display: none; }
+    .tip-title { font-weight: 800; color: #34d399; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 4px; }
+    .tip-body { display: flex; flex-direction: column; gap: 2px; }
+    .tip-row { display: flex; justify-content: space-between; gap: 12px; color: #d1d5db; }
+    .tip-row span:last-child { font-weight: 700; }
+    .tip-cur { color: #60a5fa; font-weight: 700; }
+    .tip-high { color: #c084fc; }
+    .tip-note { font-size: 11px; color: #9ca3af; border-top: 1px solid #334155; margin-top: 4px; padding-top: 4px; }
+    .chart-guide {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--ink-soft);
+    }
+
+    /* LTV bars */
+    #ltv-bars-container { display: flex; flex-direction: column; gap: 6px; }
+    .ltv-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .ltv-row {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      grid-template-areas:
+        "label coc"
+        "track track"
+        "diff diff";
+      gap: 4px 8px;
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      min-height: 44px;
+      align-items: center;
+    }
+    .ltv-row:hover { background: rgba(0,0,0,0.03); }
+    .ltv-row.is-current {
+      background: var(--blue-soft);
+      box-shadow: inset 0 0 0 1px var(--blue);
+    }
+    .ltv-label { grid-area: label; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; font-weight: 650; white-space: nowrap; }
+    .ltv-label.is-current { color: var(--blue); font-weight: 800; }
+    .ltv-track {
+      grid-area: track;
+      height: 14px;
+      background: #f0ebe1;
+      border-radius: 999px;
+      overflow: hidden;
+      padding: 3px 4px;
+    }
+    .ltv-fill { height: 8px; border-radius: 999px; opacity: 0.9; }
+    .ltv-coc {
+      grid-area: coc;
+      text-align: right;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .ltv-diff {
+      grid-area: diff;
+      text-align: right;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .bar-muted { background: #9ca3af; }
+    .bar-ok { background: #10b981; }
+    .bar-rose { background: #f43f5e; }
+    .bar-amber { background: #f59e0b; }
+    .tone-muted { color: var(--muted); }
+    .tone-ok { color: var(--ok); font-weight: 700; }
+    .tone-rose { color: var(--rose); font-weight: 700; }
+    .tone-amber { color: var(--amber); font-weight: 700; }
+    .tone-purple { color: var(--purple); }
+
+    /* Multiplier grid */
+    .mult-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .mult-card {
+      padding: 10px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--hair);
+      background: #fff;
+      text-align: center;
+      cursor: pointer;
+      min-height: 72px;
+    }
+    .mult-card:hover { border-color: var(--blue); }
+    .mult-card .lv { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 800; color: var(--muted); }
+    .mult-card .eq { font-size: 12px; color: var(--muted); }
+    .mult-card .amp { margin-top: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 800; color: var(--blue); }
+    .mult-card.is-70 { border-color: rgba(37,99,235,.35); background: var(--blue-soft); }
+    .mult-card.is-70 .lv { color: #1d4ed8; }
+    .mult-card.is-80 { border-color: rgba(124,58,237,.35); background: var(--purple-soft); }
+    .mult-card.is-80 .lv, .mult-card.is-80 .amp { color: var(--purple); }
+    .mult-card.is-100 { border-color: rgba(217,119,6,.5); background: var(--amber-bg); }
+    .mult-card.is-100 .lv, .mult-card.is-100 .amp { color: var(--amber); }
+
+    .note-100 {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(217,119,6,.35);
+      background: var(--amber-bg);
+      font-size: 14px;
+    }
+    .note-100 h3 { font-size: 15px; color: #92400e; margin-bottom: 6px; }
+    .note-100 p { margin: 0 0 8px; color: var(--ink-soft); font-size: 13px; }
+    .note-100 p:last-child { margin-bottom: 0; }
+    .formula { font-variant-numeric: tabular-nums; }
+
+    .principles {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .principle {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--hair);
+      background: #fff;
+    }
+    .principle h3 { font-size: 15px; margin-bottom: 4px; }
+    .principle p { margin: 0; font-size: 13px; color: var(--ink-soft); }
+    .principle.c1 h3 { color: var(--ok); }
+    .principle.c2 h3 { color: var(--blue); }
+    .principle.c3 h3 { color: var(--purple); }
+
+    .more-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tool-link {
+      flex: 1 1 240px;
+      display: block;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--hair);
+      background: #fff;
+      text-decoration: none;
+      color: inherit;
+      min-height: 44px;
+    }
+    .tool-link:hover { border-color: var(--gold); color: inherit; }
+    .tool-link strong { display: block; color: var(--brand); }
+    .tool-link span { font-size: 13px; color: var(--muted); }
+
+    footer.site-footer {
+      margin: 20px auto 8px;
+      width: min(1120px, calc(100% - 28px));
+      color: var(--muted);
+      font-size: 13px;
+    }
+    footer.site-footer p { margin: 0 0 8px; }
+
+    .cta {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: rgba(10,10,10,.94);
+      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+      z-index: 30;
+      border-top: 1px solid rgba(201, 162, 74, 0.35);
+    }
+    .cta .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--header-text);
+      font-size: 14px;
+    }
+    .cta span { min-width: 0; }
+    .btn-line {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--line);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 10px 16px;
+      min-height: 44px;
+      white-space: nowrap;
+    }
+    .btn-line:hover { background: var(--line-dark); color: #fff; }
+
+    /* Tablet 768+ */
+    @media (min-width: 768px) {
+      .logo { width: 52px; height: 52px; }
+      .brand-name { font-size: 20px; }
+      .hero-top { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+      .mode-toggle { width: auto; min-width: 340px; max-width: 420px; }
+      .flow-arrow { display: block; }
+      .controls { grid-template-columns: 1fr 1fr; }
+      .aux-grid {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+      }
+      .chart-box { height: 340px; }
+      .chart-head { flex-direction: row; align-items: center; justify-content: space-between; }
+      .chart-guide { flex-direction: row; justify-content: space-between; gap: 16px; }
+      .ltv-row {
+        grid-template-columns: 96px 1fr minmax(120px, auto) minmax(120px, auto);
+        grid-template-areas: "label track coc diff";
+        padding: 8px 10px;
+      }
+      .ltv-coc, .ltv-diff { text-align: right; }
+      .mult-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .principles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    /* Tablet landscape / desktop */
+    @media (min-width: 1024px) {
+      .hide-sm { display: inline; }
+      .aux-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) auto; }
+      .reset-btn { justify-self: end; }
+      .chart-box { height: 380px; }
+      .mult-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+    }
+
+    .back-link .short { display: none; }
+    @media (max-width: 430px) {
+      .back-link span.full { display: none; }
+      .back-link .short { display: inline; }
+      .cta .wrap { flex-direction: column; align-items: stretch; text-align: center; }
+      .btn-line { width: 100%; }
+      body { padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="../">
+        <img class="logo" src="logo.png" width="256" height="256" alt="翔買鶴厝">
+        <div>
+          <div class="brand-name">翔買鶴厝</div>
+          <div class="brand-sub">台中收租投資</div>
+        </div>
+      </a>
+      <a class="back-link" href="../">⬅ <span class="full">返回「翔買鶴厝｜台中房市風向觀測站」</span><span class="short">返回首頁</span></a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>買房收租財務模型計算機</h1>
+          <p class="lead">一眼看清：<span class="c-gross">毛投報率</span> 如何經過 <span class="c-ltv">貸款成數</span> 槓桿撬動，轉化為實質的 <span class="c-coc">現金投報率</span>（現金回報率）。</p>
+        </div>
+        <div class="mode-toggle" role="group" aria-label="計算模式">
+          <button type="button" id="mode-interest" class="mode-btn is-active" onclick="setMode('interest')">寬限期 / 純利息（槓桿回報）</button>
+          <button type="button" id="mode-amortized" class="mode-btn" onclick="setMode('amortized')">本息均攤（月淨現金流）</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="impact-banner" class="impact-banner" aria-live="polite">
+      <div class="impact-flow">
+        <div class="metric metric-gross">
+          <span class="metric-label">起點：毛投報率</span>
+          <span id="banner-gross" class="metric-value">3.5%</span>
+        </div>
+        <div class="flow-arrow" aria-hidden="true">➔</div>
+        <div class="metric metric-ltv">
+          <span class="metric-label">借款槓桿：貸款成數</span>
+          <span id="banner-ltv" class="metric-value">70%</span>
+          <span id="banner-multiplier" class="metric-sub">(槓桿 ×3.3)</span>
+        </div>
+        <div class="flow-arrow" aria-hidden="true">➔</div>
+        <div class="metric metric-coc">
+          <span class="metric-label">結果：現金投報率</span>
+          <span id="banner-coc" class="metric-value">—</span>
+        </div>
+      </div>
+      <div class="verdict-wrap">
+        <div id="banner-verdict" class="verdict">計算中…</div>
+        <p id="banner-detail" class="banner-detail"></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="controls">
+        <div class="slider-block">
+          <label for="slider-gross">毛投報率（年租金 ÷ 房屋總價）<span id="label-gross" class="slider-val gross">3.5%</span></label>
+          <input id="slider-gross" type="range" min="1.0" max="15.0" step="0.1" value="3.5">
+          <div class="slider-marks">
+            <span>1.5%（台北大坪數）</span>
+            <span class="hide-sm">3.5%（一般住宅）</span>
+            <span>6.0%（套房／收租）</span>
+            <span class="hide-sm">10.0%（隔套）</span>
+            <span>15.0%（極致包租／海外）</span>
+          </div>
+        </div>
+        <div class="slider-block">
+          <label for="slider-ltv">貸款成數（LTV）<span id="label-ltv" class="slider-val ltv">70%</span></label>
+          <input id="slider-ltv" type="range" min="0" max="100" step="5" value="70">
+          <div class="slider-marks">
+            <span>0%（全現）</span>
+            <span class="hide-sm">40%</span>
+            <span>70%</span>
+            <span class="hide-sm">85%</span>
+            <span>100%（全額貸／零自備）</span>
+          </div>
+        </div>
+        <div class="aux-grid">
+          <div class="field">
+            <label for="input-rate">房貸年利率</label>
+            <div class="row">
+              <input id="input-rate" type="number" inputmode="decimal" min="1.0" max="5.0" step="0.05" value="2.30">
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="select-expense">管銷／空置扣除</label>
+            <select id="select-expense">
+              <option value="0">0%（純毛租金）</option>
+              <option value="0.05">5%（輕微扣減）</option>
+              <option value="0.10" selected>10%（標準扣減）</option>
+              <option value="0.15">15%（含代管維護）</option>
+              <option value="0.20">20%（老屋高維護）</option>
+              <option value="0.25">25%（短租／高週轉）</option>
+              <option value="0.30">30%（高空置／最高防護）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="input-price">房屋總價</label>
+            <div class="row">
+              <input id="input-price" type="number" inputmode="decimal" min="300" max="5000" step="50" value="1200">
+              <span class="unit">萬元</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="select-years">年限</label>
+            <select id="select-years">
+              <option value="20">20年</option>
+              <option value="30" selected>30年</option>
+              <option value="40">40年</option>
+            </select>
+          </div>
+          <button type="button" class="reset-btn" onclick="resetDefaults()">重設標準值</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="chart-head">
+        <h2>槓桿樞紐扇形圖（X：毛投報率 ➔ Y：現金投報率）</h2>
+        <div class="legend">
+          <span><i class="dot-blue"></i>當前成數（<span id="legend-current-ltv">70%</span>）</span>
+          <span><i class="dot-gray"></i>0% 全額現金（無槓桿基準線）</span>
+          <span><i class="dot-amber"></i>槓桿支點（平衡點）</span>
+        </div>
+      </div>
+      <div class="chart-box">
+        <canvas id="fan-canvas"></canvas>
+        <div id="fan-tooltip" class="hidden"></div>
+      </div>
+      <div class="chart-guide">
+        <div>👈 <b>支點左側（負槓桿）</b>：射線向下陡斜，<b>成數越高跌越深</b>，買越高成數倒賠越多。</div>
+        <div>👉 <b>支點右側（正槓桿）</b>：射線向上陡斜，<b>成數越高獲利翻倍</b>，貸款如同裝上推進器。</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>當前毛投報率 <span id="bar-current-gross" class="mono" style="color:var(--ok)">3.5%</span> 下，各貸款成數的現金投報率對照階梯</h2>
+        <span class="hint">點擊任一長條可快速切換該成數</span>
+      </div>
+      <div class="ltv-scroll">
+        <div id="ltv-bars-container"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>貸款成數槓桿斜率放大總結（40% ~ 100% 終極零自備）</h2>
+        <span class="hint formula">斜率放大倍數 = 1 / (1 − 貸款成數)</span>
+      </div>
+      <div class="mult-grid">
+        <div class="mult-card" onclick="selectLtv(40)">
+          <div class="lv">貸 40%</div>
+          <div class="eq">自備 60%</div>
+          <div class="amp">放大 1.67 倍</div>
+        </div>
+        <div class="mult-card" onclick="selectLtv(50)">
+          <div class="lv">貸 50%</div>
+          <div class="eq">自備 50%</div>
+          <div class="amp">放大 2.0 倍</div>
+        </div>
+        <div class="mult-card" onclick="selectLtv(60)">
+          <div class="lv">貸 60%</div>
+          <div class="eq">自備 40%</div>
+          <div class="amp">放大 2.5 倍</div>
+        </div>
+        <div class="mult-card is-70" onclick="selectLtv(70)">
+          <div class="lv">貸 70%</div>
+          <div class="eq">自備 30%</div>
+          <div class="amp">放大 3.3 倍</div>
+        </div>
+        <div class="mult-card is-80" onclick="selectLtv(80)">
+          <div class="lv">貸 80%</div>
+          <div class="eq">自備 20%</div>
+          <div class="amp">放大 5.0 倍</div>
+        </div>
+        <div class="mult-card" onclick="selectLtv(85)">
+          <div class="lv">貸 85%</div>
+          <div class="eq">自備 15%</div>
+          <div class="amp">放大 6.7 倍</div>
+        </div>
+        <div class="mult-card" onclick="selectLtv(90)">
+          <div class="lv">貸 90%</div>
+          <div class="eq">自備 10%</div>
+          <div class="amp">放大 10.0 倍</div>
+        </div>
+        <div class="mult-card is-100" onclick="selectLtv(100)">
+          <div class="lv">貸 100% 👑</div>
+          <div class="eq">自備 0%（全貸）</div>
+          <div class="amp">放大 ∞ 無限倍</div>
+        </div>
+      </div>
+      <div class="note-100">
+        <h3>👑 貸款成數 100% 終極物件算法（連頭期款／自備款都用貸款的終極目標）</h3>
+        <p><b>核心數學本質</b>：自有資金投入（Equity）＝ <b>0 元</b>。現金投報率公式 <span class="formula">CoC ＝ 年淨現金流 ÷ 自有自備資金 ＝ 年淨現金流 ÷ 0 → ∞</span>。</p>
+        <p><b>👑 無限正報酬（正現金流）</b>：當 <b>「每月淨租金收入 &gt; 100% 總貸款之每月支出」</b>，代表投資人<b>「完全不出自備款（零本金）」</b>，每期房貸本息全由租客繳清，自己每個月還能現賺淨現金流流入！此時投資報酬率數學上趨近於<b>無限大（∞）</b>，資產淨值隨時間被動累積。</p>
+        <p><b>⚠️ 致命負現金流反噬（倒貼風險）</b>：若毛投報率未達損益平衡點，租金不夠付 100% 貸款本息，因無任何自有資金吸收震盪，投資人每個月都必須從薪資倒貼差額。此時槓桿成為無限倍的資金絞肉機，一旦空置或升息極易引發資金鏈斷裂斷頭。</p>
+      </div>
+    </section>
+
+    <section class="principles">
+      <div class="principle c1">
+        <h3>1️⃣ 決定正負槓桿的是「利差」</h3>
+        <p>只有當<b>「扣除管銷後的淨租金率 &gt; 房貸利率」</b>時，借款才能帶來正回報。若房貸利率 2.3%、管銷扣 10%，毛投報需達 <b>2.56%</b> 以上才能脫離負槓桿。</p>
+      </div>
+      <div class="principle c2">
+        <h3>2️⃣ 成數是斜率的「放大器」</h3>
+        <p>貸款成數 L 的本質是將投報率回報斜率乘上 1 / (1 − L) 倍。貸 50% 放大 2 倍、貸 70% 放大 3.3 倍、貸 80% 放大 5 倍、貸 100% 則放大至無限大！</p>
+      </div>
+      <div class="principle c3">
+        <h3>3️⃣ 本息均攤的現金流陷阱</h3>
+        <p>在「本息均攤」下需每期還本金，毛投報通常需達 <b>4.0% ~ 4.5%</b> 以上，每月實質現金流才能轉正，否則每個月都得自掏腰包貼房貸。</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-bottom:10px">其他試算工具</h2>
+      <div class="more-tools">
+        <a class="tool-link" href="../rental-calculator/">
+          <strong>套房租金投報率試算</strong>
+          <span>用總價、租金與貸款條件，計算現金回報率、毛投報與現金流。</span>
+        </a>
+        <a class="tool-link" href="../tax-calculator/">
+          <strong>房東稅費試算</strong>
+          <span>比較一般房東、公益出租人、社宅包租代管的所得稅與稅費。</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>僅供試算參考</strong>，不構成投資建議，亦非對任何物件租金、核貸、稅額或報酬的承諾。實際稅費以主管機關核定為準；貸款成數與利率以銀行核准為準。公式假設條件維持不變，未反映空置、修繕、利率重訂或稅制變動。使用前請自行核對輸入與實際條件。</p>
+    <p>翔買鶴厝｜買房收租財務模型計算機</p>
+  </footer>
+
+  <div class="cta">
+    <div class="wrap">
+      <span>想把這組假設套到你的物件上一起看？</span>
+      <a class="btn-line" href="https://line.me/R/ti/p/@825gowqf" target="_blank" rel="noopener noreferrer">加 LINE@ @825gowqf</a>
+    </div>
+  </div>
+
+  <script>
+    // 核心數據狀態
+    const state = {
+      grossYield: 3.5,     // 毛投報率 %
+      ltv: 70,             // 貸款成數 %
+      rate: 2.30,          // 房貸利率 %
+      expenseRatio: 0.10,  // 費用折減 10%
+      price: 1200,         // 房屋總價 (萬)
+      years: 30,           // 年限
+      mode: 'interest'     // 'interest' (純利息/寬限期) 或 'amortized' (本息均攤)
+    };
+
+    // DOM 元素引用
+    const sliderGross = document.getElementById('slider-gross');
+    const sliderLtv = document.getElementById('slider-ltv');
+    const labelGross = document.getElementById('label-gross');
+    const labelLtv = document.getElementById('label-ltv');
+    const inputRate = document.getElementById('input-rate');
+    const selectExpense = document.getElementById('select-expense');
+    const inputPrice = document.getElementById('input-price');
+    const selectYears = document.getElementById('select-years');
+
+    const bannerGross = document.getElementById('banner-gross');
+    const bannerLtv = document.getElementById('banner-ltv');
+    const bannerMultiplier = document.getElementById('banner-multiplier');
+    const bannerCoc = document.getElementById('banner-coc');
+    const bannerVerdict = document.getElementById('banner-verdict');
+    const bannerDetail = document.getElementById('banner-detail');
+    const impactBanner = document.getElementById('impact-banner');
+    const legendCurrentLtv = document.getElementById('legend-current-ltv');
+    const barCurrentGross = document.getElementById('bar-current-gross');
+    const ltvBarsContainer = document.getElementById('ltv-bars-container');
+
+    const canvas = document.getElementById('fan-canvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('fan-tooltip');
+
+    // 千分位輔助格式化
+    function fmt(n) {
+      return Math.round(n).toLocaleString('zh-TW');
+    }
+
+    // 計算特定 (毛投報, 成數) 下的現金投報率
+    function computeMetrics(gross, ltvPct, rate, expense, priceWan, years, mode) {
+      const price = priceWan * 10000;
+      const ltv = ltvPct / 100;
+      const loan = price * ltv;
+      const equity = price * Math.max(0, 1 - ltv);
+
+      const annualGrossRent = price * (gross / 100);
+      const annualNetRent = annualGrossRent * (1 - expense);
+      const monthlyNetRent = annualNetRent / 12;
+
+      const monthlyRate = (rate / 100) / 12;
+      let monthlyPayment = 0;
+
+      if (loan > 0) {
+        if (mode === 'interest') {
+          monthlyPayment = loan * monthlyRate;
+        } else {
+          const totalMonths = years * 12;
+          const factor = Math.pow(1 + monthlyRate, totalMonths);
+          monthlyPayment = loan * (monthlyRate * factor) / (factor - 1);
+        }
+      }
+
+      const monthlyCashflow = monthlyNetRent - monthlyPayment;
+      const annualCashflow = monthlyCashflow * 12;
+
+      let coc = 0;
+      if (ltvPct >= 100 || equity <= 0) {
+        // 100% 全額貸 (零自備款終極算法)
+        coc = monthlyCashflow >= 0 ? Infinity : -Infinity;
+      } else {
+        coc = (annualCashflow / equity) * 100;
+      }
+
+      return {
+        gross,
+        ltv: ltvPct,
+        loan,
+        equity,
+        monthlyNetRent,
+        monthlyPayment,
+        monthlyCashflow,
+        coc
+      };
+    }
+
+    // 計算槓桿支點 (Break-even Pivot Point)
+    // 當 Mode = 'interest' 時：淨投報 = 房貸利率 => gross * (1 - expense) = rate => gross = rate / (1 - expense)
+    function getPivotGross(rate, expense, years, mode) {
+      if (mode === 'interest') {
+        return rate / (1 - expense);
+      } else {
+        // 本息均攤時，PMT 每月償還本息佔總價的比例
+        const monthlyRate = (rate / 100) / 12;
+        const totalMonths = years * 12;
+        const factor = Math.pow(1 + monthlyRate, totalMonths);
+        const pmtFactorAnnual = (monthlyRate * factor / (factor - 1)) * 12 * 100;
+        return pmtFactorAnnual / (1 - expense);
+      }
+    }
+
+    function setMode(newMode) {
+      state.mode = newMode;
+      const btnInt = document.getElementById('mode-interest');
+      const btnAm = document.getElementById('mode-amortized');
+
+      if (newMode === 'interest') {
+        btnInt.className = 'mode-btn is-active';
+        btnAm.className = 'mode-btn';
+      } else {
+        btnAm.className = 'mode-btn is-active';
+        btnInt.className = 'mode-btn';
+      }
+      recalculate();
+    }
+
+    function resetDefaults() {
+      // 用字串寫入，避免 0.10 被轉成 "0.1" 而對不上 <option value="0.10">，導致重設後出現 NaN
+      sliderGross.value = '3.5';
+      sliderLtv.value = '70';
+      inputRate.value = '2.30';
+      selectExpense.value = '0.10';
+      inputPrice.value = '1200';
+      selectYears.value = '30';
+      setMode('interest');
+    }
+
+    // 主刷新流程
+    function recalculate() {
+      state.grossYield = parseFloat(sliderGross.value);
+      state.ltv = parseFloat(sliderLtv.value);
+      state.rate = parseFloat(inputRate.value) || 2.30;
+      state.expenseRatio = parseFloat(selectExpense.value);
+      state.price = parseFloat(inputPrice.value) || 1200;
+      state.years = parseInt(selectYears.value);
+
+      // 更新控制器 Label
+      labelGross.textContent = `${state.grossYield.toFixed(1)}%`;
+      labelLtv.textContent = `${state.ltv}%`;
+      legendCurrentLtv.textContent = `${state.ltv}%`;
+      barCurrentGross.textContent = `${state.grossYield.toFixed(1)}%`;
+
+      // 核心指標計算
+      const current = computeMetrics(state.grossYield, state.ltv, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+      const unleveraged = computeMetrics(state.grossYield, 0, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+      const pivotGross = getPivotGross(state.rate, state.expenseRatio, state.years, state.mode);
+
+      // 槓桿倍數 (Equity Multiplier)
+      const multiplier = state.ltv < 100 ? (1 / (1 - state.ltv / 100)).toFixed(1) : '∞';
+
+      // 更新頂部 Banner
+      bannerGross.textContent = `${state.grossYield.toFixed(1)}%`;
+      bannerLtv.textContent = `${state.ltv}%`;
+      bannerMultiplier.textContent = state.ltv < 100 ? `(槓桿 ×${multiplier}倍)` : `(槓桿 ×∞ 無限)`;
+
+      if (state.ltv >= 100) {
+        if (current.monthlyCashflow >= 0) {
+          bannerCoc.textContent = '∞ (無限大)';
+          bannerVerdict.textContent = `👑 100%全額貸終極零自備：租客幫養房 + 每月現賺 $${fmt(current.monthlyCashflow)} 元！`;
+          bannerVerdict.className = 'verdict is-amber';
+          bannerDetail.textContent = `連頭期款都是貸款！自備款 0 元，每月租金扣除房貸本息後仍有淨現金流入，投資報酬率在數學上為無限大！`;
+          impactBanner.className = 'impact-banner is-amber';
+        } else {
+          const deficit = Math.abs(current.monthlyCashflow);
+          bannerCoc.textContent = `月貼 $${fmt(deficit)}`;
+          bannerVerdict.textContent = `⚠️ 100%全額貸但每月倒貼 $${fmt(deficit)} 元 (資金鏈高危險！)`;
+          bannerVerdict.className = 'verdict is-rose';
+          bannerDetail.textContent = `零自備款但租金不夠付 100% 貸款支出，每月需自掏薪水貼補差額，一旦遇空置或升息容易引發斷頭風險！`;
+          impactBanner.className = 'impact-banner is-rose';
+        }
+      } else if (state.ltv === 0) {
+        bannerCoc.textContent = `${current.coc.toFixed(2)}%`;
+        bannerVerdict.textContent = '⚪ 無貸款 (零槓桿基準)';
+        bannerVerdict.className = 'verdict is-gray';
+        bannerDetail.textContent = `全現投資：實質現金回報率為 ${current.coc.toFixed(2)}%`;
+        impactBanner.className = 'impact-banner is-gray';
+      } else {
+        bannerCoc.textContent = `${current.coc.toFixed(2)}%`;
+        const diff = current.coc - unleveraged.coc;
+        const isPositive = current.coc >= unleveraged.coc;
+
+        if (isPositive) {
+          bannerVerdict.textContent = `🔥 正槓桿：比無貸款增益 +${diff.toFixed(2)}%`;
+          bannerVerdict.className = 'verdict is-positive';
+          bannerDetail.textContent = `毛投報 ${state.grossYield.toFixed(1)}% 高於損益平衡門檻 (${pivotGross.toFixed(2)}%)，成數越高收益越被放大！`;
+          impactBanner.className = 'impact-banner is-positive';
+        } else {
+          bannerVerdict.textContent = `⚠️ 負槓桿：比無貸款減損 ${diff.toFixed(2)}%`;
+          bannerVerdict.className = 'verdict is-rose';
+          bannerDetail.textContent = `毛投報 ${state.grossYield.toFixed(1)}% 低於損益平衡門檻 (${pivotGross.toFixed(2)}%)，借貸利息正在蠶食資本回報！`;
+          impactBanner.className = 'impact-banner is-rose';
+        }
+      }
+
+      // 渲染主圖表
+      renderFanChart(pivotGross);
+
+      // 渲染階梯對照橫條
+      renderLtvBars(unleveraged.coc);
+    }
+
+    // 渲染階梯對照橫條 (0% 以及 40% ~ 100%)
+    function renderLtvBars(zeroCoc) {
+      const ltvs = [0, 40, 50, 60, 70, 80, 90, 100];
+      let html = '';
+
+      // 計算非 100% 成數中的最大 CoC 絕對值，讓橫條寬度動態自適應
+      const finiteCocs = ltvs
+        .filter(l => l < 100)
+        .map(l => Math.abs(computeMetrics(state.grossYield, l, state.rate, state.expenseRatio, state.price, state.years, state.mode).coc));
+      const maxBarCoC = Math.max(...finiteCocs, 15);
+
+      ltvs.forEach(l => {
+        const m = computeMetrics(state.grossYield, l, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+        const isCurrent = l === state.ltv;
+        const diffFromZero = m.coc - zeroCoc;
+
+        let tagTone = 'tone-muted';
+        let barTone = 'bar-muted';
+        let cocDisplay = '';
+        let diffDisplay = '';
+        let pctWidth = 5;
+
+        if (l === 0) {
+          tagTone = 'tone-muted';
+          barTone = 'bar-muted';
+          cocDisplay = `${m.coc.toFixed(2)}%`;
+          diffDisplay = '基準 (全現)';
+          pctWidth = Math.min(100, Math.max(6, (Math.abs(m.coc) / maxBarCoC) * 100));
+        } else if (l === 100) {
+          if (m.monthlyCashflow >= 0) {
+            tagTone = 'tone-amber';
+            barTone = 'bar-amber';
+            cocDisplay = `∞ (+${fmt(m.monthlyCashflow)}/月)`;
+            diffDisplay = '👑 零自備無限投報';
+            pctWidth = 100;
+          } else {
+            tagTone = 'tone-rose';
+            barTone = 'bar-rose';
+            cocDisplay = `月貼 $${fmt(Math.abs(m.monthlyCashflow))}`;
+            diffDisplay = '⚠️ 零自備需補貼';
+            pctWidth = Math.min(100, Math.max(10, (Math.abs(m.monthlyCashflow) / 20000) * 100));
+          }
+        } else {
+          if (diffFromZero >= 0) {
+            tagTone = 'tone-ok';
+            barTone = 'bar-ok';
+          } else {
+            tagTone = 'tone-rose';
+            barTone = 'bar-rose';
+          }
+          cocDisplay = `${m.coc.toFixed(2)}%`;
+          diffDisplay = (diffFromZero >= 0 ? '+' : '') + diffFromZero.toFixed(2) + '% 槓桿';
+          pctWidth = Math.min(100, Math.max(6, (Math.abs(m.coc) / maxBarCoC) * 100));
+        }
+
+        const cocTone = l === 100
+          ? (m.monthlyCashflow >= 0 ? 'tone-amber' : 'tone-rose')
+          : (m.coc >= 0 ? 'tone-purple' : 'tone-rose');
+
+        html += `
+          <div onclick="selectLtv(${l})" class="ltv-row${isCurrent ? ' is-current' : ''}">
+            <span class="ltv-label${isCurrent ? ' is-current' : ''}">
+              成數 ${l}% ${l === 100 ? '👑' : ''}
+            </span>
+            <div class="ltv-track">
+              <div class="ltv-fill ${barTone}" style="width: ${pctWidth}%;"></div>
+            </div>
+            <div class="ltv-coc ${cocTone}">${cocDisplay}</div>
+            <div class="ltv-diff ${tagTone}">${diffDisplay}</div>
+          </div>
+        `;
+      });
+
+      ltvBarsContainer.innerHTML = html;
+    }
+
+    function selectLtv(l) {
+      sliderLtv.value = l;
+      recalculate();
+    }
+
+    // 圖表內距：小螢幕加寬左右，避免 Y 軸標題與「70% (當前)」被裁切；hover 必須用同一組數值
+    function chartPad(w) {
+      if (w < 500) return { top: 28, right: 62, bottom: 44, left: 58 };
+      if (w < 800) return { top: 26, right: 58, bottom: 42, left: 54 };
+      return { top: 25, right: 58, bottom: 40, left: 52 };
+    }
+
+    // 渲染核心「槓桿樞紐扇形圖」
+    let hoverState = null;
+
+    function renderFanChart(pivotGross) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+
+      // 本頁為翔買鶴厝淺色品牌底，不跟隨系統暗色，避免圖表與頁面配色衝突
+      const isDark = document.documentElement.classList.contains('dark');
+
+      ctx.clearRect(0, 0, w, h);
+
+      const pad = chartPad(w);
+      const pw = w - pad.left - pad.right;
+      const ph = h - pad.top - pad.bottom;
+
+      // X 軸：毛投報率 1.0% ~ 15.0%
+      const minX = 1.0;
+      const maxX = 15.0;
+
+      // Y 軸：現金投報率動態範圍自適應
+      const minY = state.mode === 'interest' ? -5 : -10;
+      const testMaxCoC = Math.max(
+        computeMetrics(maxX, Math.min(80, Math.max(70, state.ltv)), state.rate, state.expenseRatio, state.price, state.years, state.mode).coc,
+        computeMetrics(state.grossYield, state.ltv, state.rate, state.expenseRatio, state.price, state.years, state.mode).coc,
+        20
+      );
+      const maxY = Math.ceil((testMaxCoC * 1.05) / 10) * 10;
+
+      const toX = (val) => pad.left + ((val - minX) / (maxX - minX)) * pw;
+      const toY = (val) => pad.top + ph - ((val - minY) / (maxY - minY)) * ph;
+
+      // 1. 繪製背景分區：以 PivotGross 區分負槓桿區與正槓桿區
+      const pivotX = toX(pivotGross);
+      if (pivotX >= pad.left && pivotX <= pad.left + pw) {
+        // 左側：負槓桿背景 (淡紅)
+        ctx.fillStyle = isDark ? 'rgba(239, 68, 68, 0.06)' : 'rgba(239, 68, 68, 0.04)';
+        ctx.fillRect(pad.left, pad.top, pivotX - pad.left, ph);
+
+        // 右側：正槓桿背景 (淡綠)
+        ctx.fillStyle = isDark ? 'rgba(16, 185, 129, 0.06)' : 'rgba(16, 185, 129, 0.04)';
+        ctx.fillRect(pivotX, pad.top, pad.left + pw - pivotX, ph);
+
+        // 垂直支點虛線
+        ctx.strokeStyle = isDark ? '#f59e0b' : '#d97706';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pad.top);
+        ctx.lineTo(pivotX, pad.top + ph);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 支點上方文字
+        ctx.fillStyle = isDark ? '#f59e0b' : '#d97706';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`槓桿平衡點: 毛 ${pivotGross.toFixed(2)}%`, pivotX, pad.top - 8);
+      }
+
+      // 2. 網格與 Y 軸標籤
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.font = '10px monospace';
+
+      const yTicks = 6;
+      for (let i = 0; i <= yTicks; i++) {
+        const val = minY + (i / yTicks) * (maxY - minY);
+        const y = toY(val);
+
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + pw, y);
+        ctx.stroke();
+
+        ctx.fillStyle = textColor;
+        ctx.fillText(`${val.toFixed(0)}%`, pad.left - 6, y);
+      }
+
+      // 0% 現金平衡虛線
+      if (minY <= 0 && maxY >= 0) {
+        const zeroY = toY(0);
+        ctx.strokeStyle = isDark ? 'rgba(239, 68, 68, 0.6)' : 'rgba(239, 68, 68, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, zeroY);
+        ctx.lineTo(pad.left + pw, zeroY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 3. X 軸刻度與標籤 (1% 到 15%，每 2% 一刻度)
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      for (let xVal = 1.0; xVal <= 15.0; xVal += 2.0) {
+        const x = toX(xVal);
+        ctx.strokeStyle = isDark ? '#334155' : '#cbd5e1';
+        ctx.beginPath();
+        ctx.moveTo(x, pad.top + ph);
+        ctx.lineTo(x, pad.top + ph + 4);
+        ctx.stroke();
+
+        ctx.fillStyle = textColor;
+        ctx.fillText(`毛 ${xVal.toFixed(0)}%`, x, pad.top + ph + 6);
+      }
+
+      // 軸名
+      ctx.textAlign = 'right';
+      ctx.fillText('毛投報率 (Gross Yield) ➔', pad.left + pw, pad.top + ph + 24);
+
+      ctx.save();
+      ctx.translate(pad.left - (w < 500 ? 32 : 30), pad.top + ph / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillText(w < 500 ? 'CoC (%)' : '現金投報率 CoC (%) ➔', 0, 0);
+      ctx.restore();
+
+      // 4. 繪製不同成數的比較射線 (0%, 50%, 80%)
+      const comparisonLtvs = [0, 50, 80];
+      comparisonLtvs.forEach(l => {
+        if (l === state.ltv) return; // 當前成數待會單獨繪製加粗
+
+        ctx.beginPath();
+        ctx.strokeStyle = l === 0
+          ? (isDark ? 'rgba(148, 163, 184, 0.5)' : 'rgba(100, 116, 139, 0.5)')
+          : (isDark ? 'rgba(99, 102, 241, 0.35)' : 'rgba(99, 102, 241, 0.3)');
+        ctx.lineWidth = l === 0 ? 1.5 : 1.2;
+        if (l === 0) ctx.setLineDash([3, 2]);
+
+        for (let g = minX; g <= maxX; g += 0.2) {
+          const m = computeMetrics(g, l, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+          const px = toX(g);
+          const py = toY(m.coc);
+          if (g === minX) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 標記文字
+        const endM = computeMetrics(maxX, l, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+        ctx.fillStyle = l === 0 ? textColor : (isDark ? 'rgba(99, 102, 241, 0.7)' : 'rgba(99, 102, 241, 0.7)');
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${l}%成數`, toX(maxX) + 2, toY(endM.coc));
+      });
+
+      // 5. 繪製「當前選中貸款成數」射線 (加粗高亮)
+      if (state.ltv >= 100) {
+        // 100% 槓桿特殊繪製：在支點處垂直突破天際
+        const px = toX(pivotGross);
+        ctx.beginPath();
+        ctx.strokeStyle = '#f59e0b'; // 琥珀金
+        ctx.lineWidth = 4;
+        ctx.moveTo(px, toY(0));
+        ctx.lineTo(px, pad.top);
+        ctx.stroke();
+
+        // 頂部箭頭與文字標註
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('👑 100% 全額貸 (無限槓桿 ▲)', Math.min(pad.left + pw - 60, Math.max(pad.left + 60, px + 50)), pad.top + 14);
+      } else {
+        ctx.beginPath();
+        ctx.strokeStyle = '#2563eb'; // 藍色主色
+        ctx.lineWidth = 3.5;
+        for (let g = minX; g <= maxX; g += 0.1) {
+          const m = computeMetrics(g, state.ltv, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+          const px = toX(g);
+          const py = toY(Math.max(minY, Math.min(maxY, m.coc)));
+          if (g === minX) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // 當前成數末端文字
+        const curEndM = computeMetrics(maxX, state.ltv, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+        ctx.fillStyle = '#2563eb';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${state.ltv}% (當前)`, toX(maxX) + 2, toY(Math.max(minY, Math.min(maxY, curEndM.coc))));
+      }
+
+      // 6. 標繪「當前選擇的 (毛投報, 成數)」高亮核心點
+      const curMetrics = computeMetrics(state.grossYield, state.ltv, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+      const curPointX = toX(state.grossYield);
+      let curPointY;
+      if (state.ltv >= 100) {
+        curPointY = curMetrics.monthlyCashflow >= 0 ? pad.top + 8 : pad.top + ph - 8;
+      } else {
+        curPointY = toY(Math.max(minY, Math.min(maxY, curMetrics.coc)));
+      }
+
+      // 輔助十字虛線
+      ctx.strokeStyle = state.ltv >= 100 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(37, 99, 235, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(curPointX, pad.top);
+      ctx.lineTo(curPointX, pad.top + ph);
+      ctx.moveTo(pad.left, curPointY);
+      ctx.lineTo(pad.left + pw, curPointY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 當前大焦點圓球
+      ctx.beginPath();
+      ctx.arc(curPointX, curPointY, 7, 0, Math.PI * 2);
+      ctx.fillStyle = state.ltv >= 100 ? (curMetrics.monthlyCashflow >= 0 ? '#f59e0b' : '#ef4444') : '#9333ea';
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      if (state.ltv >= 100) {
+        ctx.fillStyle = curMetrics.monthlyCashflow >= 0 ? '#f59e0b' : '#ef4444';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+          curMetrics.monthlyCashflow >= 0 ? `👑 0自備款無限投報 (+${fmt(curMetrics.monthlyCashflow)}/月)` : `⚠️ 0自備款倒貼 (-${fmt(Math.abs(curMetrics.monthlyCashflow))}/月)`,
+          curPointX,
+          curMetrics.monthlyCashflow >= 0 ? pad.top + 24 : pad.top + ph - 16
+        );
+      }
+
+      // 7. Hover 互動懸停輔助標記
+      if (hoverState) {
+        const hx = toX(hoverState.gross);
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(hx, pad.top);
+        ctx.lineTo(hx, pad.top + ph);
+        ctx.stroke();
+
+        const hy = toY(hoverState.coc);
+        ctx.beginPath();
+        ctx.arc(hx, hy, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+      }
+    }
+
+    // 滑鼠／觸控 Hover 動態讀取 Tooltip
+    function handlePointerAt(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+
+      const pad = chartPad(w);
+      const pw = rect.width - pad.left - pad.right;
+
+      if (x < pad.left || x > rect.width - pad.right || y < pad.top || y > rect.height - pad.bottom) {
+        tooltip.classList.add('hidden');
+        hoverState = null;
+        renderFanChart(getPivotGross(state.rate, state.expenseRatio, state.years, state.mode));
+        return;
+      }
+
+      // 反推滑鼠所在毛投報率
+      const ratio = (x - pad.left) / pw;
+      const hoverGross = Math.max(1.0, Math.min(15.0, 1.0 + ratio * 14.0));
+      const roundedGross = Math.round(hoverGross * 10) / 10;
+
+      const curM = computeMetrics(roundedGross, state.ltv, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+      const zeroM = computeMetrics(roundedGross, 0, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+      const highM = computeMetrics(roundedGross, 80, state.rate, state.expenseRatio, state.price, state.years, state.mode);
+
+      hoverState = { gross: roundedGross, coc: curM.coc };
+      renderFanChart(getPivotGross(state.rate, state.expenseRatio, state.years, state.mode));
+
+      const isCur100 = state.ltv >= 100;
+      let curText = '';
+      if (isCur100) {
+        curText = curM.monthlyCashflow >= 0 ? `👑 ∞ (月賺 +$${fmt(curM.monthlyCashflow)})` : `⚠️ 月貼 $${fmt(Math.abs(curM.monthlyCashflow))}`;
+      } else {
+        curText = `${curM.coc.toFixed(2)}%`;
+      }
+
+      tooltip.innerHTML = `
+        <div class="tip-title">
+          毛投報率: ${roundedGross.toFixed(1)}%
+        </div>
+        <div class="tip-body">
+          <div class="tip-row tip-zero">
+            <span>0% (無貸款基準):</span>
+            <span>${zeroM.coc.toFixed(2)}%</span>
+          </div>
+          <div class="tip-row tip-cur">
+            <span>${state.ltv}% (當前選定):</span>
+            <span>${curText}</span>
+          </div>
+          <div class="tip-row tip-high">
+            <span>80% (高成數對照):</span>
+            <span>${highM.coc.toFixed(2)}%</span>
+          </div>
+        </div>
+        <div class="tip-note">
+          ${isCur100 ? (curM.monthlyCashflow >= 0 ? '👑 零自備無限正回報' : '⚠️ 零自備但需自掏貼息') : (curM.coc >= zeroM.coc ? '🔥 正槓桿：借越多投報越高' : '⚠️ 負槓桿：借越多投報越低')}
+        </div>
+      `;
+
+      tooltip.style.left = `${Math.min(rect.width - 165, Math.max(10, x - 80))}px`;
+      tooltip.style.top = `${Math.max(10, y - 110)}px`;
+      tooltip.classList.remove('hidden');
+    }
+
+    function hideHover() {
+      tooltip.classList.add('hidden');
+      hoverState = null;
+      renderFanChart(getPivotGross(state.rate, state.expenseRatio, state.years, state.mode));
+    }
+
+    canvas.addEventListener('mousemove', (e) => handlePointerAt(e.clientX, e.clientY));
+    canvas.addEventListener('mouseleave', hideHover);
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (!e.touches.length) return;
+      handlePointerAt(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    canvas.addEventListener('touchmove', (e) => {
+      if (!e.touches.length) return;
+      handlePointerAt(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    canvas.addEventListener('touchend', () => {
+      if (hoverState) {
+        sliderGross.value = hoverState.gross;
+        recalculate();
+      }
+      hideHover();
+    });
+    canvas.addEventListener('touchcancel', hideHover);
+
+    // 點擊圖表快速鎖定該毛投報率
+    canvas.addEventListener('click', () => {
+      if (hoverState) {
+        sliderGross.value = hoverState.gross;
+        recalculate();
+      }
+    });
+
+    // 綁定輸入控制項事件
+    sliderGross.addEventListener('input', recalculate);
+    sliderLtv.addEventListener('input', recalculate);
+    inputRate.addEventListener('input', recalculate);
+    selectExpense.addEventListener('change', recalculate);
+    inputPrice.addEventListener('input', recalculate);
+    selectYears.addEventListener('change', recalculate);
+
+    window.addEventListener('resize', () => {
+      renderFanChart(getPivotGross(state.rate, state.expenseRatio, state.years, state.mode));
+    });
+
+    window.addEventListener('themechange', () => {
+      renderFanChart(getPivotGross(state.rate, state.expenseRatio, state.years, state.mode));
+    });
+
+    // 初始化啟動
+    recalculate();
+  </script>
+</body>
+</html>
