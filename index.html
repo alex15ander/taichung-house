@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Summary Data Script (loads locally and on GitHub Pages with zero CORS restrictions) -->
+  <!-- 備援資料：試算表讀取失敗或尚未載入完成時使用 -->
   <script src="data/summary.js"></script>
 
   <style>
@@ -738,7 +738,7 @@
       資料來源：內政部不動產成交案件實際資訊，已排除特殊交易，以中位數彙總；僅供參考。
     </p>
     <p class="footer-note">
-      資料涵蓋期間：民國 110 年至 <span id="footer-season">115年第2季</span>。
+      資料涵蓋期間：民國 <span id="footer-start-year">110</span> 年至 <span id="footer-season">115年第2季</span>。
     </p>
     <p class="footer-credit">
       翔買鶴厝 曾義翔 整理
@@ -1275,29 +1275,194 @@ function updateStatCards(allMonthsList) {
   }
 }
 
-// 載入資料
-async function loadData() {
-  // 優先使用 window.TAICHUNG_SUMMARY_DATA（由 data/summary.js 本地與網頁直接注入）
-  if (window.TAICHUNG_SUMMARY_DATA) {
-    RAW_DATA = window.TAICHUNG_SUMMARY_DATA;
-    if (RAW_DATA.updated_season) {
-      document.getElementById("footer-season").textContent = RAW_DATA.updated_season;
+// ---- 開啟時從 Google Sheet 讀最新彙總（失敗則用 data/summary.js 備援）----
+// 收租更新試算表時，請保持第一個分頁、欄位名稱與值的寫法不變：
+//   年月,區,類型,屋齡,成交件數,單價中位數,單價平均數
+//   年月：民國年/月，例如 115/05
+//   區：全區或台中 29 區全名（例如 南屯區）
+//   類型：全部／大樓／透天／公寓
+//   屋齡：全部／5年內／6~20年／20年以上（波浪號請用半形 ~）
+//   成交件數：整數；單價中位數、單價平均數：萬/坪數字，可空白
+const SHEET_ID = "1M8R5Yv3eaFgm_740EQJa109TqLRgz3KM_R8dOmYnohM";
+const SHEET_GID = "2145453352";
+const SUMMARY_CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID +
+  "/gviz/tq?tqx=out:csv&headers=1&gid=" + SHEET_GID;
+
+const REQUIRED_SHEET_COLS = ["年月", "區", "類型", "屋齡", "成交件數", "單價中位數", "單價平均數"];
+const ALLOWED_TYPES = { "全部": true, "大樓": true, "透天": true, "公寓": true };
+const ALLOWED_AGES = { "全部": true, "5年內": true, "6~20年": true, "6～20年": true, "20年以上": true };
+
+function parseCsv(text) {
+  const rows = []; let row = [], cur = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') q = false;
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cur); rows.push(row); row = []; cur = "";
+    } else cur += c;
+  }
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(v => String(v).trim() !== ""));
+}
+
+function normalizeAge(age) {
+  return age === "6～20年" ? "6~20年" : age;
+}
+
+function seasonFromYm(ym) {
+  const [y, m] = ym.split("/").map(Number);
+  return y + "年第" + Math.ceil(m / 3) + "季";
+}
+
+function csvToSummary(rows) {
+  if (!rows.length) throw new Error("empty csv");
+  const h = rows[0].map(x => String(x).replace(/^\uFEFF/, "").trim());
+  const col = name => {
+    const i = h.indexOf(name);
+    if (i < 0) throw new Error("missing " + name);
+    return i;
+  };
+  REQUIRED_SHEET_COLS.forEach(col);
+  const iYm = col("年月"), iDist = col("區"), iType = col("類型"), iAge = col("屋齡");
+  const iCount = col("成交件數"), iMed = col("單價中位數"), iAvg = col("單價平均數");
+
+  const data = {};
+  let valid = 0, skipped = 0;
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const ym = String(row[iYm] || "").trim();
+    const dist = String(row[iDist] || "").trim();
+    const typ = String(row[iType] || "").trim();
+    const age = normalizeAge(String(row[iAge] || "").trim());
+    if (!/^\d{2,3}\/\d{2}$/.test(ym) || !dist || !ALLOWED_TYPES[typ] || !ALLOWED_AGES[age]) {
+      skipped++;
+      continue;
     }
-    renderApp();
-    return;
+    const c = Number(String(row[iCount] || "").trim());
+    const medRaw = String(row[iMed] || "").trim();
+    const avgRaw = String(row[iAvg] || "").trim();
+    const med = medRaw === "" ? null : Number(medRaw);
+    const avg = avgRaw === "" ? null : Number(avgRaw);
+    if (!Number.isFinite(c) || c < 0 || (med !== null && !Number.isFinite(med)) || (avg !== null && !Number.isFinite(avg))) {
+      skipped++;
+      continue;
+    }
+    if (!data[dist]) data[dist] = {};
+    if (!data[dist][typ]) data[dist][typ] = {};
+    if (!data[dist][typ][age]) data[dist][typ][age] = [];
+    data[dist][typ][age].push({ m: ym, c, med, avg });
+    valid++;
+  }
+  if (valid < 100) throw new Error("too few valid rows: " + valid);
+  if (skipped / (valid + skipped) > 0.05) throw new Error("too many bad rows: " + skipped);
+  if (!data["全區"] || !data["全區"]["全部"] || !data["全區"]["全部"]["全部"] || !data["全區"]["全部"]["全部"].length) {
+    throw new Error("missing 全區/全部/全部");
   }
 
-  // 備援：透過 fetch 讀取 data/summary.json
-  try {
-    const res = await fetch("data/summary.json");
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    RAW_DATA = await res.json();
-    if (RAW_DATA.updated_season) {
-      document.getElementById("footer-season").textContent = RAW_DATA.updated_season;
+  Object.keys(data).forEach(dist => {
+    Object.keys(data[dist]).forEach(typ => {
+      Object.keys(data[dist][typ]).forEach(age => {
+        data[dist][typ][age].sort((a, b) => parseYm(a.m) - parseYm(b.m));
+      });
+    });
+  });
+
+  const range = dataRangeFrom({ data });
+  return {
+    updated_season: range.season,
+    season_range: range.minYm && range.maxYm
+      ? seasonFromYm(range.minYm).replace("年第", "S").replace("季", "") + " ~ " + seasonFromYm(range.maxYm).replace("年第", "S").replace("季", "")
+      : "",
+    districts: ["全區"].concat(Object.keys(data).filter(d => d !== "全區").sort()),
+    data
+  };
+}
+
+function dataRangeFrom(payload) {
+  let minV = Infinity, maxV = -Infinity, minYm = null, maxYm = null;
+  const root = payload && payload.data;
+  if (root) {
+    Object.keys(root).forEach(dist => {
+      const td = root[dist] || {};
+      Object.keys(td).forEach(typ => {
+        const ad = td[typ] || {};
+        Object.keys(ad).forEach(age => {
+          (ad[age] || []).forEach(it => {
+            if (!it || !it.m) return;
+            const v = parseYm(it.m);
+            if (!Number.isFinite(v)) return;
+            if (v < minV) { minV = v; minYm = it.m; }
+            if (v > maxV) { maxV = v; maxYm = it.m; }
+          });
+        });
+      });
+    });
+  }
+  if (!minYm || !maxYm) return {};
+  return {
+    minYm,
+    maxYm,
+    startYear: minYm.split("/")[0],
+    season: seasonFromYm(maxYm)
+  };
+}
+
+function applyFooter(payload) {
+  const range = dataRangeFrom(payload);
+  const startEl = document.getElementById("footer-start-year");
+  const seasonEl = document.getElementById("footer-season");
+  if (startEl && range.startYear) startEl.textContent = range.startYear;
+  if (seasonEl) seasonEl.textContent = (payload && payload.updated_season) || range.season || seasonEl.textContent;
+}
+
+function applyLoadedData(payload, source) {
+  if (!payload || !payload.data) throw new Error("invalid payload");
+  RAW_DATA = payload;
+  document.documentElement.dataset.source = source;
+  applyFooter(payload);
+  renderApp();
+}
+
+async function loadFallbackJson() {
+  const res = await fetch("data/summary.json", { cache: "no-store" });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+
+// 先畫備援資料（避免等 2 萬列試算表時畫面空白），成功讀到 Sheet 再替換成最新資料
+async function loadData() {
+  if (window.TAICHUNG_SUMMARY_DATA) {
+    try {
+      applyLoadedData(window.TAICHUNG_SUMMARY_DATA, "fallback");
+    } catch (e) {
+      console.warn("備援資料無法顯示：", e);
     }
-    renderApp();
+  }
+
+  try {
+    const res = await fetch(SUMMARY_CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    if (!text || /^\s*</.test(text)) throw new Error("sheet returned non-CSV");
+    const payload = csvToSummary(parseCsv(text));
+    applyLoadedData(payload, "sheet");
   } catch (err) {
-    console.error("無法載入 summary.json:", err);
+    console.warn("使用內建備援資料：", err);
+    if (!RAW_DATA) {
+      try {
+        applyLoadedData(await loadFallbackJson(), "fallback");
+      } catch (err2) {
+        console.error("無法載入行情資料：", err2);
+      }
+    } else if (!document.documentElement.dataset.source) {
+      document.documentElement.dataset.source = "fallback";
+    }
   }
 }
 
