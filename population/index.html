@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F5F5F7">
+  <title>台灣人口統計｜台中 29 區＋全台縣市總覽 - 翔買鶴厝</title>
+  <meta name="description" content="內政部戶政司官方人口統計：一眼看懂哪一區年輕人多、人口還在增加還是減少。支援台中 29 區與全台 22 縣市人口金字塔、歷年趨勢與年齡結構分析。">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23F5F5F7'/%3E%3Cpath d='M20 52 L50 25 L80 52 L80 82 L20 82 Z' fill='%232563EB' stroke='%230F172A' stroke-width='4'/%3E%3Ctext x='50' y='72' font-family='sans-serif' font-size='26' font-weight='bold' text-anchor='middle' fill='%23FFFFFF'%3E鶴%3C/text%3E%3C/svg%3E">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- 內嵌備援資料（長表 CSV 格式，產自戶政司官方資料） -->
+  <script src="data/summary.js"></script>
+
+  <style>
+    :root {
+      --color-bg: #F5F5F7;
+      --color-surface: #FFFFFF;
+      --color-ink: #1D1D1F;
+      --color-secondary: #6E6E73;
+      --color-tertiary: #8E8E93;
+      --color-separator: rgba(60, 60, 67, 0.18);
+      --color-accent: #0F2042;
+      --color-accent-hover: #1E3A6E;
+      --color-track: #E5E5EA;
+      --color-hairline: rgba(60, 60, 67, 0.12);
+      --male-color: #3B6AE0;
+      --female-color: #E11D48;
+      --font-body: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Helvetica Neue", sans-serif;
+      --radius-group: 12px;
+      --shadow-seg: 0 0.5px 1px rgba(0, 0, 0, 0.12);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body { overflow-x: clip; }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      line-height: 1.4;
+      font-size: 17px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 48px 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 0 20px;
+    }
+
+    header.site-header {
+      padding: 32px 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .header-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-secondary);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-link:hover { color: var(--color-ink); }
+
+    .data-status-tag {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-tertiary);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #30D158;
+    }
+
+    h1.page-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--color-ink);
+      line-height: 1.15;
+    }
+
+    p.page-subtitle {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--color-secondary);
+      line-height: 1.4;
+    }
+
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius-group);
+      border: none;
+      box-shadow: none;
+      padding: 16px 18px;
+    }
+
+    .filter-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 14px 14px 16px;
+    }
+
+    .segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--color-track);
+      padding: 2px;
+      border-radius: 9px;
+    }
+
+    .segmented-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      padding: 8px 0;
+      min-height: 44px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--color-ink);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .segmented-btn.active {
+      background: #FFFFFF;
+      color: var(--color-ink);
+      box-shadow: var(--shadow-seg);
+    }
+
+    .selector-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .selector-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-secondary);
+    }
+
+    #region-current-tag,
+    #period-current-tag {
+      color: var(--color-accent) !important;
+      font-weight: 600 !important;
+    }
+
+    .chips-scroll-wrap,
+    .period-scroll-wrap {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      margin: 0 -4px;
+      padding-left: 4px;
+      padding-right: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .chips-scroll-wrap::-webkit-scrollbar,
+    .period-scroll-wrap::-webkit-scrollbar { display: none; }
+
+    .chip-btn,
+    .period-btn {
+      appearance: none;
+      border: none;
+      background: var(--color-track);
+      color: var(--color-ink);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 8px 14px;
+      min-height: 36px;
+      border-radius: 999px;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .period-btn { border-radius: 8px; }
+
+    .chip-btn.active,
+    .period-btn.active {
+      background: var(--color-accent);
+      color: #FFFFFF;
+    }
+
+    .latest-badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      margin-left: 4px;
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    /* Inset grouped metric cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--color-surface);
+      border-radius: var(--radius-group);
+      overflow: hidden;
+      gap: 0;
+    }
+
+    .metric-card {
+      background: transparent;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 96px;
+      min-width: 0;
+      position: relative;
+    }
+
+    /* hairlines: right on col 1, bottom on row 1 */
+    .metric-card:nth-child(odd) {
+      box-shadow: inset -0.5px 0 0 var(--color-separator);
+    }
+    .metric-card:nth-child(-n+2) {
+      box-shadow: inset 0 -0.5px 0 var(--color-separator);
+    }
+    .metric-card:nth-child(1) {
+      box-shadow: inset -0.5px -0.5px 0 var(--color-separator);
+    }
+    .metric-card:nth-child(2) {
+      box-shadow: inset 0 -0.5px 0 var(--color-separator);
+    }
+
+    @media (min-width: 640px) {
+      .metrics-grid { grid-template-columns: repeat(4, 1fr); }
+      .metric-card { box-shadow: inset -0.5px 0 0 var(--color-separator) !important; }
+      .metric-card:last-child { box-shadow: none !important; }
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-secondary);
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin: 6px 0 4px;
+    }
+
+    .metric-unit {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-tertiary);
+      margin-left: 2px;
+      letter-spacing: 0;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--color-tertiary);
+      line-height: 1.35;
+      white-space: normal;
+    }
+
+    .yoy-positive { color: #C9344C !important; }
+    .yoy-negative { color: #1F7A4D !important; }
+
+    .charts-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .charts-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+    }
+
+    .chart-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 16px 14px;
+    }
+
+    .chart-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 0.5px solid var(--color-separator);
+      padding-bottom: 8px;
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.02em;
+    }
+
+    .chart-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-accent);
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-secondary);
+    }
+
+    .legend-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-dot-male,
+    .legend-dot-female {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+    .legend-dot-male { background: var(--male-color); }
+    .legend-dot-female { background: var(--female-color); }
+
+    .legend-line-trend {
+      width: 14px;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--color-accent);
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 360px;
+    }
+
+    @media (max-width: 400px) {
+      .chart-wrap { height: 320px; }
+    }
+
+    .axis-note {
+      font-size: 11px;
+      color: var(--color-tertiary);
+      line-height: 1.35;
+    }
+
+    .disclosure-section {
+      padding: 4px 2px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--color-secondary);
+      line-height: 1.6;
+    }
+
+    .disclosure-section a {
+      color: var(--color-accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .cta-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-group);
+      border: none;
+      box-shadow: none;
+      padding: 22px 18px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cta-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-ink);
+      line-height: 1.4;
+    }
+
+    .linktree-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-accent);
+      color: #FFFFFF;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 12px 28px;
+      min-height: 48px;
+      border-radius: 12px;
+      transition: background 0.15s ease;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .linktree-btn:hover { background: var(--color-accent-hover); }
+
+    footer.site-footer {
+      text-align: center;
+      padding-top: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-tertiary);
+    }
+
+    .empty-banner {
+      display: none;
+      background: var(--color-surface);
+      border-radius: var(--radius-group);
+      padding: 16px 18px;
+      font-size: 14px;
+      color: var(--color-secondary);
+    }
+    .empty-banner.is-visible { display: block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .segmented-btn, .chip-btn, .period-btn, .linktree-btn { transition: none; }
+    }
+  </style>
+</head>
+<body data-source="fallback">
+
+<div class="app-container">
+
+  <!-- 頁首 -->
+  <header class="site-header">
+    <div class="header-top-row">
+      <a class="brand-link" href="../" title="回到台中行情頁">
+        <span>翔買鶴厝｜台中買房收租顧問</span>
+      </a>
+      <span class="data-status-tag" id="data-status-tag">
+        <span class="status-dot"></span>
+        <span id="source-indicator">官方備援資料</span>
+      </span>
+    </div>
+    <h1 class="page-title">台灣人口統計</h1>
+    <p class="page-subtitle">看懂哪一區的人口在增加、年輕人多不多</p>
+  </header>
+
+  <div class="empty-banner" id="empty-banner" role="status">資料載入中。若一直沒出現數字，請重新整理頁面。</div>
+
+  <!-- 篩選卡片 -->
+  <section class="card filter-card" aria-label="篩選控制項">
+    
+    <!-- 範圍切換 (兩顆按鈕) -->
+    <div class="segmented-control" role="tablist">
+      <button type="button" class="segmented-btn" id="scope-btn-taiwan" data-scope="taiwan">全台縣市</button>
+      <button type="button" class="segmented-btn active" id="scope-btn-taichung" data-scope="taichung">台中各區</button>
+    </div>
+
+    <!-- 縣市或區域按鈕列 -->
+    <div class="selector-block">
+      <div class="selector-label-row">
+        <span id="region-label-text">選擇行政區：</span>
+        <span id="region-current-tag" style="color: var(--accent-blue); font-weight: 700;">全區</span>
+      </div>
+      <div class="chips-scroll-wrap" id="region-chips-container" role="tablist">
+        <!-- 由 JavaScript 動態注入按鈕 -->
+      </div>
+    </div>
+
+    <!-- 金字塔年月選擇列 -->
+    <div class="selector-block">
+      <div class="selector-label-row">
+        <span>選擇觀察年月：</span>
+        <span id="period-current-tag" style="color: var(--text-muted); font-weight: 600;">115/10 (最新)</span>
+      </div>
+      <div class="period-scroll-wrap" id="period-chips-container" role="tablist">
+        <!-- 由 JavaScript 動態注入年份按鈕 -->
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 4 張數字卡網格 -->
+  <section class="metrics-grid" aria-label="核心人口指標">
+    
+    <!-- 卡 1: 總人口 -->
+    <div class="metric-card">
+      <span class="metric-label">總人口數</span>
+      <div class="metric-value" id="stat-total-people">--</div>
+      <span class="metric-sub" id="stat-total-period">--</span>
+    </div>
+
+    <!-- 卡 2: 年增率 (YoY) -->
+    <div class="metric-card">
+      <span class="metric-label">人口年增率 (YoY)</span>
+      <div class="metric-value" id="stat-yoy-rate">--</div>
+      <span class="metric-sub" id="stat-yoy-note">--</span>
+    </div>
+
+    <!-- 卡 3: 65 歲以上占比 -->
+    <div class="metric-card">
+      <span class="metric-label">65 歲以上高齡占比</span>
+      <div class="metric-value" id="stat-elderly-rate">--</div>
+      <span class="metric-sub" id="stat-elderly-count">--</span>
+    </div>
+
+    <!-- 卡 4: 20-39 歲青壯占比 -->
+    <div class="metric-card">
+      <span class="metric-label">20–39 歲青年占比</span>
+      <div class="metric-value" id="stat-youth-rate">--</div>
+      <span class="metric-sub" id="stat-youth-count">主力首購與租屋人口</span>
+    </div>
+
+  </section>
+
+  <!-- 兩張圖表卡片 (手機單排，電腦並排) -->
+  <main class="charts-container">
+    
+    <!-- 圖表 1: 人口金字塔 -->
+    <article class="card chart-card" aria-label="人口金字塔圖表">
+      <div class="chart-header-row">
+        <h2 class="chart-title">人口金字塔</h2>
+        <span class="chart-tag" id="pyramid-tag">台中市全區・115/10</span>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-box">
+          <span class="legend-dot-male"></span>
+          <span>男（左）</span>
+        </div>
+        <div class="legend-box">
+          <span class="legend-dot-female"></span>
+          <span>女（右）</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="pyramidChart"></canvas>
+      </div>
+    </article>
+
+    <!-- 圖表 2: 歷年人口趨勢線 -->
+    <article class="card chart-card" aria-label="歷年總人口趨勢圖表">
+      <div class="chart-header-row">
+        <h2 class="chart-title">歷年總人口趨勢</h2>
+        <span class="chart-tag" id="trend-tag">民國 107~115 年</span>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-box">
+          <span class="legend-line-trend"></span>
+          <span>歷年總人口（每年12月＋最新）</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="trendChart"></canvas>
+      </div>
+      <p class="axis-note" id="trend-axis-note" hidden>縱軸未從 0 起算，以便看清變化。</p>
+    </article>
+
+  </main>
+
+  <!-- 資料來源與註記 -->
+  <section class="disclosure-section" aria-label="資料來源與說明">
+    <p>
+      資料來源：<a href="https://www.ris.gov.tw/app/portal/346" target="_blank" rel="noopener noreferrer">內政部戶政司開放資料</a>（戶籍人口，村里戶數、單一年齡人口）。
+      資料年月：<span id="footer-cur-period">115/10</span>；最新資料月份：<span id="footer-latest-period">115/10</span>。
+      歷史資料只收錄民國 107 年起每年 12 月與最新月份。
+    </p>
+    <p>
+      註：戶籍登記人口，不等於實際居住人口。
+    </p>
+  </section>
+
+  <!-- 頁尾 CTA -->
+  <section class="cta-card" aria-label="諮詢互動">
+    <p class="cta-text">到 Linktree 尋寶，或私訊告訴我你想要的功能</p>
+    <a class="linktree-btn" href="https://linktr.ee/alex15ander" target="_blank" rel="noopener noreferrer">
+      到 Linktree 尋寶 →
+    </a>
+  </section>
+
+  <footer class="site-footer">
+    <p>翔買鶴厝 曾義翔 整理製作</p>
+  </footer>
+
+</div>
+
+<script>
+/**
+ * 台灣人口統計網頁小程式核心邏輯
+ */
+
+// Google 試算表設定 (若已建立公開試算表，在此填入 ID 與 GID)
+const SHEET_ID = "TODO";
+const GID = "TODO";
+const GOOGLE_SHEET_CSV_URL = (SHEET_ID !== "TODO" && GID !== "TODO")
+  ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&gid=${GID}`
+  : null;
+
+// 22 縣市清單
+const COUNTIES_22 = [
+  "全台", "臺北市", "新北市", "桃園市", "臺中市", "臺南市", "高雄市",
+  "宜蘭縣", "新竹縣", "苗栗縣", "彰化縣", "南投縣", "雲林縣",
+  "嘉義縣", "屏東縣", "臺東縣", "花蓮縣", "澎湖縣", "基隆市",
+  "新竹市", "嘉義市", "金門縣", "連江縣"
+];
+
+// 台中市 29 行政區順序清單（全區在前）
+const TAICHUNG_DISTRICTS = [
+  "全區",
+  "中區", "東區", "南區", "西區", "北區", "西屯區", "南屯區", "北屯區",
+  "豐原區", "東勢區", "大甲區", "清水區", "沙鹿區", "梧棲區", "后里區",
+  "神岡區", "潭子區", "大雅區", "新社區", "石岡區", "外埔區", "大安區",
+  "烏日區", "大肚區", "龍井區", "霧峰區", "太平區", "大里區", "和平區"
+];
+
+// 21 個固定年齡分組
+const AGE_GROUPS = [
+  "0-4", "5-9", "10-14", "15-19",
+  "20-24", "25-29", "30-34", "35-39",
+  "40-44", "45-49", "50-54", "55-59",
+  "60-64", "65-69", "70-74", "75-79",
+  "80-84", "85-89", "90-94", "95-99",
+  "100+"
+];
+
+// 應用狀態
+const state = {
+  scope: "taichung", // 'taichung' 或 'taiwan'
+  county: "臺中市",  // 縣市名稱（taiwan 模式下可為全台或 22 縣市；taichung 模式固定臺中市）
+  district: "全區",  // 行政區名稱（taichung 模式為全區或 29 區；taiwan 模式一律全區）
+  period: "115/10"   // 目前選取的民國年月
+};
+
+// 儲存解析後的全部資料
+// 結構: datasetMap[ym][county][district] = { m: { group: count }, f: { group: count }, total_m: N, total_f: N, total: N }
+let DATASET_MAP = {};
+let AVAILABLE_PERIODS = []; // 排序後的民國年月清單，例 ['107/12', ..., '115/10']
+let LATEST_PERIOD = "115/10";
+
+// Chart.js 實例引用
+let pyramidChartInstance = null;
+let trendChartInstance = null;
+
+/**
+ * 健壯的 CSV 解析函式 (支援引號與換行)
+ */
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cur = "";
+  let inQuotes = false;
+  
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cur += c;
+      }
+    } else {
+      if (c === '"') {
+        inQuotes = true;
+      } else if (c === ',') {
+        row.push(cur);
+        cur = "";
+      } else if (c === '\n' || c === '\r') {
+        if (c === '\r' && i + 1 < text.length && text[i + 1] === '\n') {
+          i++;
+        }
+        row.push(cur);
+        rows.push(row);
+        row = [];
+        cur = "";
+      } else {
+        cur += c;
+      }
+    }
+  }
+  if (cur !== "" || row.length) {
+    row.push(cur);
+    rows.push(row);
+  }
+  return rows.filter(r => r.some(v => v.trim() !== ""));
+}
+
+/**
+ * 將長表 CSV 轉換為高效的巢狀資料結構
+ * 表頭：年月,縣市,區,性別,年齡組,人數
+ */
+function processLongTableRows(rows) {
+  if (!rows || rows.length < 2) return;
+  const header = rows[0].map(h => h.trim().replace(/^\ufeff/, ''));
+  const colYm = header.indexOf("年月");
+  const colCounty = header.indexOf("縣市");
+  const colDistrict = header.indexOf("區");
+  const colSex = header.indexOf("性別");
+  const colAge = header.indexOf("年齡組");
+  const colPop = header.indexOf("人數");
+
+  if (colYm < 0 || colCounty < 0 || colDistrict < 0 || colSex < 0 || colAge < 0 || colPop < 0) {
+    throw new Error("CSV 表頭不符合規範，缺少必要欄位");
+  }
+
+  const map = {};
+  const periodsSet = new Set();
+
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    const ym = r[colYm].trim();
+    const county = r[colCounty].trim();
+    const district = r[colDistrict].trim();
+    const sex = r[colSex].trim(); // 男 或 女
+    const age = r[colAge].trim();
+    const count = parseInt(r[colPop].trim(), 10) || 0;
+
+    periodsSet.add(ym);
+
+    if (!map[ym]) map[ym] = {};
+    if (!map[ym][county]) map[ym][county] = {};
+    if (!map[ym][county][district]) {
+      map[ym][county][district] = {
+        m: {},
+        f: {},
+        total_m: 0,
+        total_f: 0,
+        total: 0
+      };
+    }
+
+    const cell = map[ym][county][district];
+    if (sex === "男") {
+      cell.m[age] = count;
+      cell.total_m += count;
+    } else {
+      cell.f[age] = count;
+      cell.total_f += count;
+    }
+    cell.total += count;
+  }
+
+  // 年月依民國年份數字排序
+  const sortedPeriods = Array.from(periodsSet).sort((a, b) => {
+    const [ay, am] = a.split("/").map(Number);
+    const [by, bm] = b.split("/").map(Number);
+    return (ay * 100 + am) - (by * 100 + bm);
+  });
+
+  DATASET_MAP = map;
+  AVAILABLE_PERIODS = sortedPeriods;
+  LATEST_PERIOD = sortedPeriods[sortedPeriods.length - 1];
+
+  // 若目前的 period 不在清單中，預設為最新月份
+  if (!AVAILABLE_PERIODS.includes(state.period)) {
+    state.period = LATEST_PERIOD;
+  }
+}
+
+/**
+ * 初始化 Segmented Control 與監聽事件
+ */
+function initControls() {
+  const btnTaiwan = document.getElementById("scope-btn-taiwan");
+  const btnTaichung = document.getElementById("scope-btn-taichung");
+
+  btnTaiwan.addEventListener("click", () => {
+    if (state.scope === "taiwan") return;
+    state.scope = "taiwan";
+    state.county = "全台";
+    state.district = "全區";
+    btnTaiwan.classList.add("active");
+    btnTaichung.classList.remove("active");
+    updateHash();
+    renderRegionChips();
+    renderApp();
+  });
+
+  btnTaichung.addEventListener("click", () => {
+    if (state.scope === "taichung") return;
+    state.scope = "taichung";
+    state.county = "臺中市";
+    state.district = "全區";
+    btnTaichung.classList.add("active");
+    btnTaiwan.classList.remove("active");
+    updateHash();
+    renderRegionChips();
+    renderApp();
+  });
+}
+
+/**
+ * 動態渲染區域選擇按鈕 (全台縣市 或 台中各區)
+ */
+
+function scrollActiveIntoView(container) {
+  const el = container.querySelector(".active");
+  if (!el) return;
+  el.scrollIntoView({ inline: "center", block: "nearest", behavior: "instant" });
+}
+
+function renderRegionChips() {
+  const container = document.getElementById("region-chips-container");
+  const labelText = document.getElementById("region-label-text");
+  const tagText = document.getElementById("region-current-tag");
+  container.innerHTML = "";
+
+  if (state.scope === "taiwan") {
+    labelText.textContent = "選擇縣市：";
+    tagText.textContent = state.county;
+
+    COUNTIES_22.forEach(c => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip-btn" + (state.county === c ? " active" : "");
+      btn.textContent = c;
+      btn.addEventListener("click", () => {
+        state.county = c;
+        state.district = "全區";
+        updateHash();
+        renderRegionChips();
+        renderApp();
+      });
+      container.appendChild(btn);
+    });
+  } else {
+    labelText.textContent = "選擇台中行政區：";
+    tagText.textContent = state.district;
+
+    TAICHUNG_DISTRICTS.forEach(d => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip-btn" + (state.district === d ? " active" : "");
+      btn.textContent = d;
+      btn.addEventListener("click", () => {
+        state.county = "臺中市";
+        state.district = d;
+        updateHash();
+        renderRegionChips();
+        renderApp();
+      });
+      container.appendChild(btn);
+    });
+  }
+  scrollActiveIntoView(container);
+}
+
+/**
+ * 動態渲染觀察年份按鈕
+ */
+function renderPeriodChips() {
+  const container = document.getElementById("period-chips-container");
+  const tag = document.getElementById("period-current-tag");
+  container.innerHTML = "";
+
+  const isLatest = (state.period === LATEST_PERIOD);
+  tag.textContent = state.period + (isLatest ? " (最新)" : "");
+
+  AVAILABLE_PERIODS.forEach(p => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "period-btn" + (state.period === p ? " active" : "");
+    const isPRecent = (p === LATEST_PERIOD);
+    if (isPRecent) {
+      btn.innerHTML = `${p}<span class="latest-badge">最新</span>`;
+    } else {
+      btn.textContent = p;
+    }
+
+    btn.addEventListener("click", () => {
+      state.period = p;
+      updateHash();
+      renderPeriodChips();
+      renderApp();
+    });
+    container.appendChild(btn);
+  });
+  scrollActiveIntoView(container);
+}
+
+/**
+ * 網址 Hash 解析與同步 (#taichung/南屯區/11510 或 #taiwan/新北市/11412)
+ */
+function readHash() {
+  const hash = window.location.hash.replace(/^#/, "");
+  if (!hash) return;
+  const parts = hash.split("/").map(decodeURIComponent);
+  if (parts.length >= 2) {
+    const sc = parts[0];
+    if (sc === "taichung") {
+      state.scope = "taichung";
+      state.county = "臺中市";
+      if (TAICHUNG_DISTRICTS.includes(parts[1])) {
+        state.district = parts[1];
+      }
+    } else if (sc === "taiwan") {
+      state.scope = "taiwan";
+      if (COUNTIES_22.includes(parts[1])) {
+        state.county = parts[1];
+        state.district = "全區";
+      }
+    }
+  }
+  if (parts.length >= 3) {
+    const p = parts[2];
+    // 若傳入格式為 11510，轉為 115/10
+    const formattedP = p.includes("/") ? p : `${p.slice(0, -2)}/${p.slice(-2)}`;
+    if (AVAILABLE_PERIODS.includes(formattedP)) {
+      state.period = formattedP;
+    }
+  }
+
+  // 同步 Segmented Control 按鈕樣式
+  document.getElementById("scope-btn-taiwan").classList.toggle("active", state.scope === "taiwan");
+  document.getElementById("scope-btn-taichung").classList.toggle("active", state.scope === "taichung");
+}
+
+function updateHash() {
+  const targetArea = (state.scope === "taichung") ? state.district : state.county;
+  const hashP = state.period.replace("/", "");
+  const hash = `#${state.scope}/${targetArea}/${hashP}`;
+  if (window.location.hash !== hash) {
+    window.history.replaceState(null, "", hash);
+  }
+}
+
+/**
+ * 取得指定區域在指定年月的統計資料物件
+ */
+function getAreaRecord(ym, county, district) {
+  if (!DATASET_MAP[ym]) return null;
+  if (!DATASET_MAP[ym][county]) return null;
+  return DATASET_MAP[ym][county][district] || null;
+}
+
+/**
+ * 更新 4 張數字卡
+ */
+function updateMetricCards() {
+  const elTotal = document.getElementById("stat-total-people");
+  const elTotalPeriod = document.getElementById("stat-total-period");
+  const elYoy = document.getElementById("stat-yoy-rate");
+  const elYoyNote = document.getElementById("stat-yoy-note");
+  const elElderly = document.getElementById("stat-elderly-rate");
+  const elElderlyCount = document.getElementById("stat-elderly-count");
+  const elYouth = document.getElementById("stat-youth-rate");
+  const elYouthCount = document.getElementById("stat-youth-count");
+
+  const curRec = getAreaRecord(state.period, state.county, state.district);
+  if (!curRec || curRec.total === 0) {
+    elTotal.textContent = "—";
+    elTotalPeriod.textContent = "查無資料";
+    elYoy.textContent = "—";
+    elYoyNote.textContent = "—";
+    elElderly.textContent = "—";
+    elElderlyCount.textContent = "—";
+    elYouth.textContent = "—";
+    elYouthCount.textContent = "—";
+    return;
+  }
+
+  // 1. 總人口
+  elTotal.innerHTML = `${curRec.total.toLocaleString()}<span class="metric-unit">人</span>`;
+  const areaName = (state.scope === "taichung") ? `臺中市${state.district}` : state.county;
+  elTotalPeriod.textContent = `${areaName}（${state.period} 統計）`;
+
+  // 2. 年增率 YoY 計算
+  // 規則：12 月資料與前一年 12 月比，首年（107/12）不顯示；最新月（115/10）與 114/12 比，註明非同月
+  const [curY, curM] = state.period.split("/").map(Number);
+  let prevPeriod = null;
+  let isCrossMonth = false;
+
+  if (curM === 12) {
+    const prevYStr = `${curY - 1}/12`;
+    if (AVAILABLE_PERIODS.includes(prevYStr)) {
+      prevPeriod = prevYStr;
+    }
+  } else {
+    // 最新月份（例如 115/10），前一年為 114/12
+    const prevYStr = `${curY - 1}/12`;
+    if (AVAILABLE_PERIODS.includes(prevYStr)) {
+      prevPeriod = prevYStr;
+      isCrossMonth = true;
+    }
+  }
+
+  if (prevPeriod) {
+    const prevRec = getAreaRecord(prevPeriod, state.county, state.district);
+    if (prevRec && prevRec.total > 0) {
+      const diff = curRec.total - prevRec.total;
+      const rate = ((diff / prevRec.total) * 100);
+      const sign = rate > 0 ? "+" : "";
+      const formattedRate = `${sign}${rate.toFixed(2)}%`;
+
+      elYoy.textContent = formattedRate;
+      elYoy.className = "metric-value " + (rate >= 0 ? "yoy-positive" : "yoy-negative");
+      if (isCrossMonth) {
+        elYoyNote.textContent = `比較對象為 ${prevPeriod}，非同月（${diff >= 0 ? '+' : ''}${diff.toLocaleString()}人）`;
+      } else {
+        elYoyNote.textContent = `較上年同月 ${prevPeriod}（${diff >= 0 ? '+' : ''}${diff.toLocaleString()}人）`;
+      }
+    } else {
+      elYoy.textContent = "—";
+      elYoy.className = "metric-value";
+      elYoyNote.textContent = "無前一年比對數據";
+    }
+  } else {
+    elYoy.textContent = "—";
+    elYoy.className = "metric-value";
+    elYoyNote.textContent = "107 年為資料起點，無前期比對";
+  }
+
+  // 3. 65 歲以上高齡人口占比 (65-69 到 100+)
+  const elderlyGroups = ["65-69", "70-74", "75-79", "80-84", "85-89", "90-94", "95-99", "100+"];
+  let elderlySum = 0;
+  elderlyGroups.forEach(g => {
+    elderlySum += (curRec.m[g] || 0) + (curRec.f[g] || 0);
+  });
+  const elderlyRate = ((elderlySum / curRec.total) * 100).toFixed(1);
+  elElderly.innerHTML = `${elderlyRate}<span class="metric-unit">%</span>`;
+  elElderlyCount.textContent = `共 ${elderlySum.toLocaleString()} 人`;
+
+  // 4. 20–39 歲青壯族群占比 (20-24, 25-29, 30-34, 35-39)
+  const youthGroups = ["20-24", "25-29", "30-34", "35-39"];
+  let youthSum = 0;
+  youthGroups.forEach(g => {
+    youthSum += (curRec.m[g] || 0) + (curRec.f[g] || 0);
+  });
+  const youthRate = ((youthSum / curRec.total) * 100).toFixed(1);
+  elYouth.innerHTML = `${youthRate}<span class="metric-unit">%</span>`;
+  elYouthCount.textContent = `主力首購租屋族群，共 ${youthSum.toLocaleString()} 人`;
+}
+
+/**
+ * 繪製人口金字塔圖表
+ */
+function renderPyramidChart() {
+  const ctx = document.getElementById("pyramidChart").getContext("2d");
+  const curRec = getAreaRecord(state.period, state.county, state.district);
+  const areaLabel = (state.scope === "taichung")
+    ? `臺中市${state.district === '全區' ? '全區' : state.district}`
+    : `${state.county}${state.district === '全區' ? '' : state.district}`;
+  
+  document.getElementById("pyramid-tag").textContent = `${areaLabel}・${state.period}`;
+
+  if (!curRec) return;
+
+  // 年齡組由下 (0-4) 到上 (100+)
+  const labels = [...AGE_GROUPS];
+  // 男性資料以負數呈現於左側
+  const maleData = labels.map(g => -(curRec.m[g] || 0));
+  const femaleData = labels.map(g => (curRec.f[g] || 0));
+
+  // 計算對稱軸刻度上限
+  let maxVal = 0;
+  labels.forEach(g => {
+    const m = curRec.m[g] || 0;
+    const f = curRec.f[g] || 0;
+    if (m > maxVal) maxVal = m;
+    if (f > maxVal) maxVal = f;
+  });
+  // 預留 10% 緩衝空間
+  const axisBound = Math.ceil((maxVal * 1.1) / 100) * 100 || 1000;
+
+  if (pyramidChartInstance) {
+    pyramidChartInstance.destroy();
+  }
+
+  pyramidChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "男性",
+          data: maleData,
+          backgroundColor: "#3B6AE0",
+          borderRadius: 2,
+          barPercentage: 0.9,
+          categoryPercentage: 0.9
+        },
+        {
+          label: "女性",
+          data: femaleData,
+          backgroundColor: "#E11D48",
+          borderRadius: 2,
+          barPercentage: 0.9,
+          categoryPercentage: 0.9
+        }
+      ]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(15, 23, 42, 0.92)",
+          titleFont: { size: 13, family: "-apple-system, BlinkMacSystemFont, PingFang TC, Noto Sans TC, sans-serif" },
+          bodyFont: { size: 12, family: "-apple-system, BlinkMacSystemFont, PingFang TC, Noto Sans TC, sans-serif" },
+          padding: 10,
+          callbacks: {
+            label: function(context) {
+              const absVal = Math.abs(context.parsed.x);
+              const totalPop = curRec.total || 1;
+              const pct = ((absVal / totalPop) * 100).toFixed(2);
+              const gender = context.datasetIndex === 0 ? "男性" : "女性";
+              return ` ${gender}: ${absVal.toLocaleString()} 人 (${pct}%)`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          min: -axisBound,
+          max: axisBound,
+          grid: {
+            color: function(c) {
+              return c.tick.value === 0 ? "rgba(60, 60, 67, 0.35)" : "rgba(60, 60, 67, 0.08)";
+            },
+            lineWidth: function(c) {
+              return c.tick.value === 0 ? 1 : 0.5;
+            }
+          },
+          ticks: {
+            font: { size: 10 },
+            color: "#8E8E93",
+            callback: function(v) {
+              return Math.abs(v).toLocaleString();
+            }
+          }
+        },
+        y: {
+          stacked: true,
+          reverse: true, // 0-4 在下、100+ 在上（標準金字塔）
+          grid: { display: false },
+          ticks: {
+            font: { size: 10.5, weight: "600" },
+            color: "#6E6E73"
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * 繪製歷年總人口趨勢折線圖
+ */
+function renderTrendChart() {
+  const ctx = document.getElementById("trendChart").getContext("2d");
+  const areaLabel = (state.scope === "taichung")
+    ? `臺中市${state.district === '全區' ? '全區' : state.district}`
+    : `${state.county}${state.district === '全區' ? '' : state.district}`;
+  
+  document.getElementById("trend-tag").textContent = `${areaLabel}・107~115 年`;
+
+  const labels = AVAILABLE_PERIODS.map(p => {
+    return p === LATEST_PERIOD ? `${p} (最新)` : p;
+  });
+
+  const dataPoints = AVAILABLE_PERIODS.map(p => {
+    const rec = getAreaRecord(p, state.county, state.district);
+    return rec ? rec.total : null;
+  });
+
+  // 特別標記最新月份點
+  const pointRadii = AVAILABLE_PERIODS.map(p => (p === LATEST_PERIOD ? 6 : 4));
+  const pointStyles = AVAILABLE_PERIODS.map(p => (p === LATEST_PERIOD ? "rectRot" : "circle"));
+  const pointBgColors = AVAILABLE_PERIODS.map(p => (p === LATEST_PERIOD ? "#C9344C" : "#0F2042"));
+
+  // 計算 y 軸合理刻度範圍
+  const validNums = dataPoints.filter(v => v !== null && v > 0);
+  const minVal = Math.min(...validNums);
+  const maxVal = Math.max(...validNums);
+  const span = maxVal - minVal || 1000;
+  // 底部留 15% 空間，頂部留 10%
+  const yMin = Math.max(0, Math.floor((minVal - span * 0.25) / 100) * 100);
+  const yMax = Math.ceil((maxVal + span * 0.15) / 100) * 100;
+
+  const axisNote = document.getElementById("trend-axis-note");
+  if (axisNote) {
+    if (yMin > 0) {
+      axisNote.hidden = false;
+      axisNote.textContent = "縱軸未從 0 起算（約 " + yMin.toLocaleString() + " 起），以便看清變化。";
+    } else {
+      axisNote.hidden = true;
+    }
+  }
+
+  if (trendChartInstance) {
+    trendChartInstance.destroy();
+  }
+
+  trendChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "總人口",
+          data: dataPoints,
+          borderColor: "#0F2042",
+          backgroundColor: "rgba(15, 32, 66, 0.06)",
+          fill: true,
+          tension: 0.2,
+          pointRadius: pointRadii,
+          pointHoverRadius: 7,
+          pointStyle: pointStyles,
+          pointBackgroundColor: pointBgColors,
+          pointBorderColor: "#FFFFFF",
+          pointBorderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(15, 23, 42, 0.92)",
+          titleFont: { size: 13, family: "-apple-system, BlinkMacSystemFont, PingFang TC, Noto Sans TC, sans-serif" },
+          bodyFont: { size: 12, family: "-apple-system, BlinkMacSystemFont, PingFang TC, Noto Sans TC, sans-serif" },
+          padding: 10,
+          callbacks: {
+            title: function(items) {
+              const idx = items[0].dataIndex;
+              const rawPeriod = AVAILABLE_PERIODS[idx];
+              return rawPeriod === LATEST_PERIOD ? `${rawPeriod}（最新資料月份）` : `${rawPeriod} 統計`;
+            },
+            label: function(context) {
+              return ` 總人口數: ${context.parsed.y.toLocaleString()} 人`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { size: 10 },
+            color: "#8E8E93",
+            maxRotation: 45
+          }
+        },
+        y: {
+          min: yMin,
+          max: yMax,
+          grid: {
+            color: "rgba(60, 60, 67, 0.08)"
+          },
+          ticks: {
+            font: { size: 10 },
+            color: "#8E8E93",
+            callback: function(v) {
+              return v.toLocaleString() + " 人";
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * 重新渲染整個頁面圖表與數字
+ */
+function renderApp() {
+  document.getElementById("footer-cur-period").textContent = state.period;
+  document.getElementById("footer-latest-period").textContent = LATEST_PERIOD;
+  updateMetricCards();
+  renderPyramidChart();
+  renderTrendChart();
+}
+
+/**
+ * 載入資料流程（優先備援繪圖，後台嘗試更新 Google 試算表）
+ */
+async function initData() {
+  // 1. 優先使用前端 window.POPULATION_SUMMARY_DATA
+  const emptyBanner = document.getElementById("empty-banner");
+  if (window.POPULATION_SUMMARY_DATA) {
+    try {
+      const rawText = window.POPULATION_SUMMARY_DATA;
+      const rows = parseCsv(rawText);
+      processLongTableRows(rows);
+      document.body.dataset.source = "fallback";
+      document.getElementById("source-indicator").textContent = "內嵌備援資料";
+      if (emptyBanner) emptyBanner.classList.remove("is-visible");
+      readHash();
+      renderRegionChips();
+      renderPeriodChips();
+      renderApp();
+    } catch (err) {
+      if (emptyBanner) {
+        emptyBanner.textContent = "資料解析失敗，請稍後再試或重新整理。";
+        emptyBanner.classList.add("is-visible");
+      }
+    }
+  } else if (emptyBanner) {
+    emptyBanner.textContent = "找不到內嵌資料檔，請確認 population/data/summary.js 已一併上線。";
+    emptyBanner.classList.add("is-visible");
+  }
+
+  // 2. 嘗試非同步讀取 Google 試算表公開 CSV（若成功則切換為 sheet）
+  if (GOOGLE_SHEET_CSV_URL) {
+    try {
+      const res = await fetch(GOOGLE_SHEET_CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
+      if (res.ok) {
+        const text = await res.text();
+        const rows = parseCsv(text);
+        if (rows && rows.length > 500) {
+          processLongTableRows(rows);
+          document.body.dataset.source = "sheet";
+          document.getElementById("source-indicator").textContent = "Google 試算表同步";
+          renderRegionChips();
+          renderPeriodChips();
+          renderApp();
+        }
+      }
+    } catch (sheetErr) {
+      // 保持備援狀態，不拋出未處理錯誤
+      document.body.dataset.source = "fallback";
+    }
+  }
+}
+
+// 頁面初次載入
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches && window.Chart) {
+    Chart.defaults.animation = false;
+  }
+  initControls();
+  window.addEventListener("hashchange", () => {
+    readHash();
+    renderRegionChips();
+    renderPeriodChips();
+    renderApp();
+  });
+  initData();
+});
+</script>
+
+</body>
+</html>
