@@ -437,7 +437,8 @@
       font-weight: 600;
       color: #94a3b8;
       margin-top: 3px;
-      white-space: nowrap;
+      line-height: 1.35;
+      white-space: normal;
     }
 
     .stat-diff-positive {
@@ -450,6 +451,38 @@
 
     .stat-diff-neutral {
       color: #64748b !important;
+    }
+
+    .stat-insufficient {
+      color: #64748b !important;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .stat-notice {
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 375px) {
+      .stat-label {
+        font-size: 10px;
+        white-space: normal;
+      }
+      .stat-value {
+        font-size: 16px;
+      }
+      .stat-insufficient {
+        font-size: 14px;
+      }
+      .stat-subtext {
+        font-size: 9px;
+      }
     }
 
     /* CTA Section */
@@ -665,9 +698,9 @@
 
       <!-- 3 Key Metric Cards -->
       <div class="stat-cards-grid">
-        <!-- Card 1: Latest Median Price -->
+        <!-- Card 1: 3-month weighted median -->
         <div class="stat-card">
-          <div class="stat-label">最新一期單價</div>
+          <div class="stat-label">近 3 個月單價</div>
           <div class="stat-value" id="stat-latest-price">--</div>
           <div class="stat-subtext" id="stat-latest-period">--</div>
         </div>
@@ -679,13 +712,14 @@
           <div class="stat-subtext">累積買賣件數</div>
         </div>
 
-        <!-- Card 3: YoY % Change -->
+        <!-- Card 3: YoY vs same 3 months last year -->
         <div class="stat-card">
-          <div class="stat-label">去年同期漲跌</div>
+          <div class="stat-label">較去年同期</div>
           <div class="stat-value" id="stat-yoy-diff">--</div>
-          <div class="stat-subtext" id="stat-yoy-sub">較去年同月</div>
+          <div class="stat-subtext" id="stat-yoy-sub">--</div>
         </div>
       </div>
+      <p class="stat-notice">最新 1～2 個月實登通常尚未登錄完整，數字可能偏少。</p>
     </section>
 
     <!-- CTA Section -->
@@ -873,6 +907,56 @@ function updateUrlParams() {
 function parseYm(ymStr) {
   const [y, m] = ymStr.split("/").map(Number);
   return y * 12 + m;
+}
+
+function formatYm(val) {
+  let m = val % 12;
+  let y = Math.floor(val / 12);
+  if (m === 0) {
+    m = 12;
+    y -= 1;
+  }
+  return `${y}/${String(m).padStart(2, "0")}`;
+}
+
+// 以全區資料的最後一個月為「最新期」，避免偏鄉篩選把過舊月份當成近 3 個月
+function getDataEndYm(fallbackList) {
+  const base = RAW_DATA && RAW_DATA.data && RAW_DATA.data["全區"] &&
+    RAW_DATA.data["全區"]["全部"] && RAW_DATA.data["全區"]["全部"]["全部"];
+  if (base && base.length) return base[base.length - 1].m;
+  if (fallbackList && fallbackList.length) return fallbackList[fallbackList.length - 1].m;
+  return null;
+}
+
+function monthWindow(endYm, n) {
+  const endVal = parseYm(endYm);
+  const months = [];
+  for (let i = n - 1; i >= 0; i--) months.push(formatYm(endVal - i));
+  return months;
+}
+
+// 以件數加權的月中位數平均；缺月視為 0 筆
+function summarizeWindow(allMonthsList, months) {
+  const map = {};
+  (allMonthsList || []).forEach(it => { map[it.m] = it; });
+  let weightedSum = 0;
+  let weight = 0;
+  let count = 0;
+  months.forEach(m => {
+    const it = map[m];
+    if (!it) return;
+    count += it.c || 0;
+    if (it.med !== null && it.c > 0) {
+      weightedSum += it.med * it.c;
+      weight += it.c;
+    }
+  });
+  return {
+    start: months[0],
+    end: months[months.length - 1],
+    count,
+    value: weight > 0 ? Math.round((weightedSum / weight) * 10) / 10 : null
+  };
 }
 
 // 根據期間篩選月份清單
@@ -1131,74 +1215,63 @@ function updateStatCards(allMonthsList) {
   const elDiff = document.getElementById("stat-yoy-diff");
   const elDiffSub = document.getElementById("stat-yoy-sub");
 
-  if (!allMonthsList || !allMonthsList.length) {
-    elPrice.textContent = "--";
+  const endYm = getDataEndYm(allMonthsList);
+  if (!endYm) {
+    elPrice.textContent = "樣本不足";
+    elPrice.className = "stat-value stat-insufficient";
     elPriceSub.textContent = "無成交資料";
-    elCount.textContent = "0";
-    elDiff.textContent = "--";
-    elDiff.className = "stat-value";
-    elDiffSub.textContent = "無對比資料";
+    elCount.innerHTML = `0<span class="stat-unit">筆</span>`;
+    elDiff.textContent = "樣本不足";
+    elDiff.className = "stat-value stat-insufficient";
+    elDiffSub.textContent = "兩期各需 30 筆以上才比較";
     return;
   }
 
-  // 1. 最新一期中位單價
-  // 從最新月份倒序找到有 med 的那一期
-  let latestPeriod = null;
-  for (let i = allMonthsList.length - 1; i >= 0; i--) {
-    if (allMonthsList[i].med !== null) {
-      latestPeriod = allMonthsList[i];
-      break;
-    }
-  }
+  const months3 = monthWindow(endYm, 3);
+  const cur3 = summarizeWindow(allMonthsList, months3);
+  const rangeLabel = `${cur3.start}–${cur3.end}`;
 
-  if (latestPeriod) {
-    elPrice.innerHTML = `${Number(latestPeriod.med).toFixed(1)}<span class="stat-unit">萬/坪</span>`;
-    elPriceSub.textContent = `最新期 ${latestPeriod.m}（${latestPeriod.c} 筆）`;
+  // 1. 近 3 個月單價（月中位數以件數加權）
+  if (cur3.count < 5 || cur3.value === null) {
+    elPrice.textContent = "樣本不足";
+    elPrice.className = "stat-value stat-insufficient";
+    elPriceSub.textContent = `${rangeLabel}（${cur3.count} 筆）`;
   } else {
-    elPrice.textContent = "--";
-    elPriceSub.textContent = "暫無有效單價";
+    elPrice.className = "stat-value";
+    elPrice.innerHTML = `${cur3.value.toFixed(1)}<span class="stat-unit">萬/坪</span>`;
+    elPriceSub.innerHTML = `近 3 個月中位數（加權）<br>${rangeLabel}（${cur3.count.toLocaleString()} 筆）`;
   }
 
-  // 2. 近 12 個月成交件數
-  const maxM = allMonthsList[allMonthsList.length - 1];
-  const maxVal = parseYm(maxM.m);
-  const minVal12m = maxVal - 11;
-  const recent12m = allMonthsList.filter(it => parseYm(it.m) >= minVal12m);
-  const total12mCount = recent12m.reduce((sum, it) => sum + it.c, 0);
-  elCount.innerHTML = `${total12mCount.toLocaleString()}<span class="stat-unit">筆</span>`;
+  // 2. 近 12 個月成交件數（對齊同一最新期）
+  const months12 = monthWindow(endYm, 12);
+  const recent12 = summarizeWindow(allMonthsList, months12);
+  elCount.innerHTML = `${recent12.count.toLocaleString()}<span class="stat-unit">筆</span>`;
 
-  // 3. 去年同期比較的漲跌 %
-  if (latestPeriod) {
-    const [curY, curM] = latestPeriod.m.split("/").map(Number);
-    const lastYearMStr = `${curY - 1}/${String(curM).padStart(2, "0")}`;
-    const lyRecord = allMonthsList.find(it => it.m === lastYearMStr);
+  // 3. 近 3 個月 vs 去年同 3 個月；兩期都要滿 30 筆才顯示漲跌
+  const lyMonths = months3.map(m => {
+    const [y, mo] = m.split("/").map(Number);
+    return `${y - 1}/${String(mo).padStart(2, "0")}`;
+  });
+  const ly3 = summarizeWindow(allMonthsList, lyMonths);
 
-    if (lyRecord && lyRecord.med !== null && lyRecord.med > 0) {
-      const diffPercent = ((latestPeriod.med - lyRecord.med) / lyRecord.med) * 100;
-      const formattedDiff = Math.abs(diffPercent).toFixed(1);
-
-      if (diffPercent > 0.05) {
-        elDiff.textContent = `+${formattedDiff}%`;
-        elDiff.className = "stat-value stat-diff-positive";
-        elDiffSub.textContent = `較去年同期(${lastYearMStr} ${lyRecord.med}萬)`;
-      } else if (diffPercent < -0.05) {
-        elDiff.textContent = `-${formattedDiff}%`;
-        elDiff.className = "stat-value stat-diff-negative";
-        elDiffSub.textContent = `較去年同期(${lastYearMStr} ${lyRecord.med}萬)`;
-      } else {
-        elDiff.textContent = `0.0%`;
-        elDiff.className = "stat-value stat-diff-neutral";
-        elDiffSub.textContent = `較去年同期持平`;
-      }
+  if (cur3.value !== null && ly3.value !== null && ly3.value > 0 && cur3.count >= 30 && ly3.count >= 30) {
+    const diffPercent = ((cur3.value - ly3.value) / ly3.value) * 100;
+    const formattedDiff = Math.abs(diffPercent).toFixed(1);
+    if (diffPercent > 0.05) {
+      elDiff.textContent = `+${formattedDiff}%`;
+      elDiff.className = "stat-value stat-diff-positive";
+    } else if (diffPercent < -0.05) {
+      elDiff.textContent = `-${formattedDiff}%`;
+      elDiff.className = "stat-value stat-diff-negative";
     } else {
-      elDiff.textContent = "--";
-      elDiff.className = "stat-value";
-      elDiffSub.textContent = `去年同月無足夠樣本`;
+      elDiff.textContent = `0.0%`;
+      elDiff.className = "stat-value stat-diff-neutral";
     }
+    elDiffSub.textContent = `本期 ${cur3.value.toFixed(1)}萬／去年 ${ly3.value.toFixed(1)}萬`;
   } else {
-    elDiff.textContent = "--";
-    elDiff.className = "stat-value";
-    elDiffSub.textContent = "無法計算漲跌";
+    elDiff.textContent = "樣本不足";
+    elDiff.className = "stat-value stat-insufficient";
+    elDiffSub.textContent = "兩期各需 30 筆以上才比較";
   }
 }
 
