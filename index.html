@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>翔買鶴厝｜台中買房收租顧問 - 全台中實價登錄趨勢查詢</title>
-  <meta name="description" content="全台中實價登錄趨勢查詢：涵蓋全台中29區自110年起官方實價登錄成交行情，支援大樓、透天、公寓類型及屋齡篩選，提供價格中位數與成交量雙軸趨勢圖。">
+  <meta name="description" content="全台中實價登錄趨勢查詢：涵蓋全台中29區自101年起官方實價登錄成交行情，支援大樓、透天、公寓類型及屋齡篩選，提供價格中位數與成交量雙軸趨勢圖。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -738,7 +738,7 @@
       資料來源：內政部不動產成交案件實際資訊，已排除特殊交易，以中位數彙總；僅供參考。
     </p>
     <p class="footer-note">
-      資料涵蓋期間：民國 <span id="footer-start-year">110</span> 年至 <span id="footer-season">115年第2季</span>。
+      資料涵蓋期間：民國 <span id="footer-start-year">101</span> 年至 <span id="footer-season">115年第2季</span>。
     </p>
     <p class="footer-credit">
       翔買鶴厝 曾義翔 整理
@@ -1053,11 +1053,18 @@ function renderChart(dataList) {
   const prices = dataList.map(d => d.med); // null if empty
   const counts = dataList.map(d => d.c);
 
-  // 空心點判斷（成交件數 < 5 為空心點）
+  // 資料點很多時（近5年／全部）縮小或隱藏點與長條，避免 375px 擠成一團
+  const nPoints = dataList.length;
+  const dense = nPoints > 48;
+  const veryDense = nPoints > 100;
   const pointBgColors = dataList.map(d => (d.c < 5 ? "#ffffff" : "#2563eb"));
   const pointBorderColors = dataList.map(() => "#2563eb");
-  const pointRadii = dataList.map(d => (d.c < 5 ? 5 : 4));
-  const pointHoverRadii = dataList.map(() => 7);
+  const pointRadii = dataList.map(d => {
+    if (veryDense) return 0;
+    if (dense) return d.c < 5 ? 3 : 2;
+    return d.c < 5 ? 5 : 4;
+  });
+  const pointHoverRadii = dataList.map(() => (veryDense ? 4 : 7));
 
   // 自動動態計算單價 Y 軸刻度範圍
   const validPrices = prices.filter(p => p !== null && p > 0);
@@ -1102,9 +1109,11 @@ function renderChart(dataList) {
           yAxisID: "y-volume",
           backgroundColor: "rgba(203, 213, 225, 0.75)",
           hoverBackgroundColor: "rgba(148, 163, 184, 0.9)",
-          borderRadius: 4,
+          borderRadius: veryDense ? 0 : 4,
           borderSkipped: false,
-          maxBarThickness: 28,
+          maxBarThickness: veryDense ? 3 : (dense ? 8 : 28),
+          categoryPercentage: veryDense ? 1 : 0.8,
+          barPercentage: veryDense ? 0.9 : 0.9,
           order: 2
         }
       ]
@@ -1157,11 +1166,22 @@ function renderChart(dataList) {
             display: false
           },
           ticks: {
-            font: { size: 11, family: "Noto Sans TC" },
+            font: { size: veryDense ? 10 : 11, family: "Noto Sans TC" },
             color: "#64748b",
-            maxRotation: 45,
-            autoSkip: true,
-            maxTicksLimit: 14
+            maxRotation: veryDense ? 0 : 45,
+            minRotation: 0,
+            autoSkip: !veryDense,
+            maxTicksLimit: veryDense ? 20 : 14,
+            callback: function(value) {
+              const label = this.getLabelForValue(value);
+              if (!veryDense) return label;
+              const parts = String(label).split("/");
+              if (parts.length !== 2) return label;
+              const year = Number(parts[0]);
+              // 375px 放不下每年一個標籤，改每 3 年顯示一次，並保留最新一年
+              if (parts[1] === "01" && ((year - 101) % 3 === 0 || year === 115)) return year + "年";
+              return "";
+            }
           }
         },
         "y-price": {
